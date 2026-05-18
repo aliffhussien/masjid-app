@@ -43,7 +43,7 @@ window.RL = {
 
   brandings: [
     { label: 'ENGINEERED BY', value: 'Aliff Hussien' },
-    { label: 'POWERED BY',    value: 'Universal Engine v1.0' },
+    { label: 'POWERED BY',    value: 'A.R.C Reactor Engine' },
     { label: 'FUELED BY',     value: 'Aliff Intelligence (AI)' },
   ],
 

@@ -83,7 +83,10 @@ function NewsTicker({ tickerSpeed = 40 }) {
             <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: '0.45em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap' }}>
               {brandings[brandIdx].label}
             </span>
-            <span style={{ fontSize: 15, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.015em', lineHeight: 1, whiteSpace: 'nowrap' }}>
+            <span style={{
+              fontSize: brandings[brandIdx].value.length > 15 ? 11 : 15,
+              fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.015em', lineHeight: 1, whiteSpace: 'nowrap'
+            }}>
               {brandings[brandIdx].value}
             </span>
           </div>
