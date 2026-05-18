@@ -98,62 +98,181 @@ function Searching({ message = 'Mendapatkan lokasi anda...' }) {
   );
 }
 
-// — STEP 3: RESULTS —
-const SAMPLE_MOSQUES = [
-  { name: 'MASJID AL-FALAH',         address: 'Kampung Baru, Kuala Lumpur',  distance: '0.8',  zone: 'WLY01' },
-  { name: 'MASJID NEGARA',           address: 'Jalan Perdana, Kuala Lumpur', distance: '2.4',  zone: 'WLY01' },
-  { name: 'MASJID JAMEK',            address: 'Jalan Tun Perak, KL',         distance: '3.1',  zone: 'WLY01' },
-  { name: 'MASJID WILAYAH',          address: 'Jalan Tuanku Abdul Halim',    distance: '5.6',  zone: 'WLY01' },
-  { name: 'MASJID UBUDIAH',          address: 'Kuala Kangsar, Perak',        distance: '7.2',  zone: 'PRK02' },
+// — STEP 3: MANUAL ENTRY (replaces fake GPS results) —
+const JAKIM_ZONES = [
+  { code: 'WLY01', label: 'Kuala Lumpur / Putrajaya' },
+  { code: 'WLY02', label: 'Labuan' },
+  { code: 'JHR01', label: 'Pulau Aur / Johor (Timur)' },
+  { code: 'JHR02', label: 'Johor Bahru' },
+  { code: 'JHR03', label: 'Kota Tinggi' },
+  { code: 'JHR04', label: 'Mersing' },
+  { code: 'JHR05', label: 'Kluang' },
+  { code: 'JHR06', label: 'Pontian' },
+  { code: 'JHR07', label: 'Segamat' },
+  { code: 'JHR08', label: 'Muar' },
+  { code: 'KDH01', label: 'Kota Setar / Alor Setar' },
+  { code: 'KDH02', label: 'Kulim' },
+  { code: 'KDH03', label: 'Kubang Pasu' },
+  { code: 'KDH04', label: 'Baling' },
+  { code: 'KDH05', label: 'Sik' },
+  { code: 'KDH06', label: 'Pendang' },
+  { code: 'KDH07', label: 'Yan' },
+  { code: 'KDH08', label: 'Pokok Sena' },
+  { code: 'KDH09', label: 'Langkawi' },
+  { code: 'KLT01', label: 'Kota Bharu' },
+  { code: 'KLT02', label: 'Pasir Mas' },
+  { code: 'KLT03', label: 'Tanah Merah' },
+  { code: 'KLT04', label: 'Pasir Puteh' },
+  { code: 'KLT05', label: 'Bachok' },
+  { code: 'KLT06', label: 'Tumpat' },
+  { code: 'KLT07', label: 'Gua Musang' },
+  { code: 'KLT08', label: 'Kuala Krai' },
+  { code: 'MLK01', label: 'Melaka' },
+  { code: 'NGS01', label: 'Seremban' },
+  { code: 'NGS02', label: 'Jelebu' },
+  { code: 'NGS03', label: 'Jempol' },
+  { code: 'NGS04', label: 'Tampin' },
+  { code: 'NGS05', label: 'Port Dickson / Kuala Pilah' },
+  { code: 'NGS06', label: 'Rembau' },
+  { code: 'PHG01', label: 'Pekan' },
+  { code: 'PHG02', label: 'Rompin' },
+  { code: 'PHG03', label: 'Maran' },
+  { code: 'PHG04', label: 'Temerloh' },
+  { code: 'PHG05', label: 'Bentong' },
+  { code: 'PHG06', label: 'Kuantan' },
+  { code: 'PHG07', label: 'Bera' },
+  { code: 'PHG08', label: 'Raub' },
+  { code: 'PHG09', label: 'Jerantut' },
+  { code: 'PRK01', label: 'Tapah / Slim River' },
+  { code: 'PRK02', label: 'Kuala Kangsar' },
+  { code: 'PRK03', label: 'Pengkalan Hulu' },
+  { code: 'PRK04', label: 'Hulu Perak' },
+  { code: 'PRK05', label: 'Kerian' },
+  { code: 'PRK06', label: 'Larut Matang' },
+  { code: 'PRK07', label: 'Kinta (Ipoh)' },
+  { code: 'PRK08', label: 'Perak Tengah' },
+  { code: 'PRK09', label: 'Muallim' },
+  { code: 'PLS01', label: 'Perlis' },
+  { code: 'PNG01', label: 'Seberang Perai / Pulau Pinang' },
+  { code: 'PNG02', label: 'Balik Pulau' },
+  { code: 'SBH01', label: 'Kota Kinabalu' },
+  { code: 'SBH02', label: 'Ranau' },
+  { code: 'SBH03', label: 'Tawau' },
+  { code: 'SBH04', label: 'Lahad Datu' },
+  { code: 'SBH05', label: 'Sandakan' },
+  { code: 'SBH06', label: 'Beaufort' },
+  { code: 'SBH07', label: 'Keningau' },
+  { code: 'SBH08', label: 'Sipitang' },
+  { code: 'SBH09', label: 'Kudat' },
+  { code: 'SBH10', label: 'Kinabatangan' },
+  { code: 'SWK01', label: 'Miri' },
+  { code: 'SWK02', label: 'Bintulu' },
+  { code: 'SWK03', label: 'Sibu' },
+  { code: 'SWK04', label: 'Sri Aman' },
+  { code: 'SWK05', label: 'Kuching' },
+  { code: 'SWK06', label: 'Kapit' },
+  { code: 'SWK07', label: 'Bau / Lundu' },
+  { code: 'SWK08', label: 'Samarahan' },
+  { code: 'SWK09', label: 'Serian' },
+  { code: 'SWK10', label: 'Betong' },
+  { code: 'SGR01', label: 'Gombak / KL Timur' },
+  { code: 'SGR02', label: 'Sabak Bernam' },
+  { code: 'SGR03', label: 'Kuala Selangor' },
+  { code: 'SGR04', label: 'Klang' },
+  { code: 'SGR05', label: 'Petaling Jaya / Shah Alam' },
+  { code: 'SGR06', label: 'Sepang' },
+  { code: 'SGR07', label: 'Kuala Langat' },
+  { code: 'SGR08', label: 'Hulu Selangor' },
+  { code: 'SGR09', label: 'Hulu Langat' },
+  { code: 'TRG01', label: 'Dungun' },
+  { code: 'TRG02', label: 'Kemaman' },
+  { code: 'TRG03', label: 'Kuala Terengganu' },
+  { code: 'TRG04', label: 'Marang' },
+  { code: 'TRG05', label: 'Hulu Terengganu' },
+  { code: 'TRG06', label: 'Setiu' },
+  { code: 'TRG07', label: 'Besut' },
 ];
 
-function Results({ onPick, onManual }) {
+const INPUT_STYLE = {
+  width: '100%', padding: '13px 16px', borderRadius: 14,
+  background: 'rgba(255,255,255,0.05)',
+  border: '1px solid rgba(255,255,255,0.10)',
+  color: 'white', fontSize: 13, fontFamily: 'inherit', fontWeight: 700,
+  outline: 'none', boxSizing: 'border-box',
+  WebkitTapHighlightColor: 'transparent',
+};
+
+function ManualEntry({ onSave }) {
+  const [name,    setName]    = useState('');
+  const [address, setAddress] = useState('');
+  const [zone,    setZone]    = useState('WLY01');
+  const [err,     setErr]     = useState('');
+
+  const submit = () => {
+    if (!name.trim()) { setErr('Sila masukkan nama masjid.'); return; }
+    onSave({ name: name.trim().toUpperCase(), address: address.trim(), zone });
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: 360, gap: 16, animation: 'rl-fadeUp 600ms cubic-bezier(0.34,1.56,0.64,1)' }}>
-      <div style={{ textAlign: 'center' }}>
-        <p style={{ margin: 0, fontSize: 10, fontWeight: 900, color: '#fb7185', letterSpacing: '0.35em', textTransform: 'uppercase' }}>{SAMPLE_MOSQUES.length} masjid dijumpai</p>
-        <h2 style={{ margin: '6px 0 0', fontSize: 22, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.025em' }}>Pilih Masjid Anda</h2>
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: 360, gap: 12, animation: 'rl-fadeUp 600ms cubic-bezier(0.34,1.56,0.64,1)' }}>
+      <div style={{ textAlign: 'center', marginBottom: 4 }}>
+        <p style={{ margin: 0, fontSize: 10, fontWeight: 900, color: '#fb7185', letterSpacing: '0.35em', textTransform: 'uppercase' }}>Maklumat Masjid</p>
+        <h2 style={{ margin: '6px 0 0', fontSize: 22, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.025em' }}>Tetapkan Masjid Anda</h2>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 360, overflowY: 'auto' }}>
-        {SAMPLE_MOSQUES.map((m, i) => (
-          <button key={i} onClick={() => onPick(m)} style={{
-            font: 'inherit', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '14px 16px', borderRadius: 18,
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.06)',
-            transition: 'all 0.2s ease',
-            textAlign: 'left',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(244,63,94,0.12)'; e.currentTarget.style.borderColor = 'rgba(244,63,94,0.30)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
-          >
-            <div style={{ flex: 1, minWidth: 0, paddingRight: 10 }}>
-              <p style={{ margin: 0, fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.015em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.name}</p>
-              <p style={{ margin: '4px 0 0', fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-                {m.distance} KM · ZON <span style={{ color: '#fb7185' }}>{m.zone}</span>
-              </p>
-              <p style={{ margin: '2px 0 0', fontSize: 9, fontWeight: 600, color: 'rgba(255,255,255,0.20)', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.address}</p>
-            </div>
-            <span style={{
-              width: 30, height: 30, borderRadius: 10,
-              background: 'rgba(244,63,94,0.10)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fb7185', flexShrink: 0,
-            }}>
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"/></svg>
-            </span>
-          </button>
-        ))}
+      <div>
+        <label style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.3em', color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
+          Nama Masjid *
+        </label>
+        <input
+          value={name}
+          onChange={e => { setName(e.target.value); setErr(''); }}
+          placeholder="cth: MASJID AL-FALAH"
+          style={INPUT_STYLE}
+        />
       </div>
 
-      <button onClick={onManual} style={{
-        font: 'inherit', cursor: 'pointer',
-        background: 'transparent', border: 'none', padding: 4,
-        color: 'rgba(255,255,255,0.30)', fontSize: 9, fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase',
+      <div>
+        <label style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.3em', color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
+          Alamat
+        </label>
+        <input
+          value={address}
+          onChange={e => setAddress(e.target.value)}
+          placeholder="cth: Jalan Masjid, Kuala Lumpur"
+          style={INPUT_STYLE}
+        />
+      </div>
+
+      <div>
+        <label style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.3em', color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
+          Zon Waktu Solat JAKIM
+        </label>
+        <select
+          value={zone}
+          onChange={e => setZone(e.target.value)}
+          style={{ ...INPUT_STYLE, cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none' }}
+        >
+          {JAKIM_ZONES.map(z => (
+            <option key={z.code} value={z.code} style={{ background: '#1c0e21', color: 'white' }}>
+              {z.code} · {z.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {err && <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: '#fb7185' }}>{err}</p>}
+
+      <button onClick={submit} style={{
+        font: 'inherit', cursor: 'pointer', marginTop: 4,
+        padding: '16px 20px', borderRadius: 18,
+        background: '#e11d48', color: 'white', border: 'none',
+        fontSize: 12, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
+        boxShadow: '0 12px 30px rgba(76,5,25,0.5)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
       }}>
-        Tak jumpa? Cari secara manual
+        Simpan &amp; Teruskan
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"/></svg>
       </button>
     </div>
   );
@@ -412,4 +531,4 @@ function Finish({ chosenMosque, logoUrl }) {
   );
 }
 
-window.Wizard = { Welcome, Searching, Results, UploadLogo, Finish, ProgressDots };
+window.Wizard = { Welcome, Searching, ManualEntry, UploadLogo, Finish, ProgressDots };

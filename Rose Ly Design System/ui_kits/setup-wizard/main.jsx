@@ -19,12 +19,12 @@ function SetupApp() {
     try { window.RL_STATE?.saveProfile({ logoUrl: url }); } catch {}
   };
 
-  // GPS search → after 1.8s show results
+  // Brief loading animation before showing the form
   const startSearch = () => {
     setStep(1);
-    setTimeout(() => setStep(2), 1800);
+    setTimeout(() => setStep(2), 800);
   };
-  const pickMosque = (m) => {
+  const saveMosque = (m) => {
     setMosque(m);
     try {
       window.RL_STATE?.saveProfile({
@@ -52,11 +52,11 @@ function SetupApp() {
       {!splashed && <window.Splash onDone={() => setSplashed(true)} />}
       {splashed && <>
         <window.Wizard.ProgressDots step={step} total={5} />
-        {step === 0 && <window.Wizard.Welcome   onStart={startSearch} onManual={startSearch} />}
-        {step === 1 && <window.Wizard.Searching />}
-        {step === 2 && <window.Wizard.Results   onPick={pickMosque} onManual={() => setStep(2)} />}
-        {step === 3 && <window.Wizard.UploadLogo chosenMosque={mosque} logoUrl={logoUrl} setLogoUrl={saveLogo} onNext={() => setStep(4)} onSkip={() => setStep(4)} />}
-        {step === 4 && <window.Wizard.Finish    chosenMosque={mosque} logoUrl={logoUrl} />}
+        {step === 0 && <window.Wizard.Welcome      onStart={startSearch} onManual={() => setStep(2)} />}
+        {step === 1 && <window.Wizard.Searching     message="Menyediakan borang setup..." />}
+        {step === 2 && <window.Wizard.ManualEntry   onSave={saveMosque} />}
+        {step === 3 && <window.Wizard.UploadLogo    chosenMosque={mosque} logoUrl={logoUrl} setLogoUrl={saveLogo} onNext={() => setStep(4)} onSkip={() => setStep(4)} />}
+        {step === 4 && <window.Wizard.Finish        chosenMosque={mosque} logoUrl={logoUrl} />}
       </>}
     </>
   );
