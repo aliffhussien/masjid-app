@@ -1,0 +1,5 @@
+{
+  "buildCommand": "npm install --prefix \"Rose Ly Design System\" && npm run build --prefix \"Rose Ly Design System\"",
+  "outputDirectory": "Rose Ly Design System/dist",
+  "installCommand": "echo skip"
+}
