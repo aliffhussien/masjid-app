@@ -4,6 +4,8 @@ import '../../shared/state.js';
 import './Splash.jsx';
 import './WizardSteps.jsx';
 
+const { useState } = React;
+
 function SetupApp() {
   const [splashed, setSplashed] = useState(false);
   const [step, setStep] = useState(0);  // 0 welcome 1 searching 2 results 3 upload 4 finish
