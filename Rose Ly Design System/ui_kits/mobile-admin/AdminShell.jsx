@@ -241,6 +241,7 @@ function PinGate({ pin, onSuccess }) {
 function AdminShell() {
   const [active, setActive] = useState('remote');
   const [profile, setProfile] = window.RL_STATE.useProfile();
+  const [installPrompt, setInstallPrompt] = useState(null);
   
   // PIN Code authentication state
   const hasPin = profile.adminPin && profile.adminPin.length === 4;
@@ -251,6 +252,24 @@ function AdminShell() {
       setAuthenticated(true);
     }
   }, [hasPin]);
+
+  useEffect(() => {
+    const handlePrompt = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handlePrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handlePrompt);
+  }, []);
+
+  const triggerInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    if (choice.outcome === 'accepted') {
+      setInstallPrompt(null);
+    }
+  };
 
   const updateLogo = (url) => setProfile({ logoUrl: url });
 
@@ -293,6 +312,18 @@ function AdminShell() {
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {installPrompt && (
+            <button onClick={triggerInstall} style={{
+              font: 'inherit', cursor: 'pointer',
+              padding: '8px 12px', borderRadius: 12,
+              background: 'rgba(244,63,94,0.15)', border: '1px solid rgba(244,63,94,0.30)', color: '#fb7185',
+              fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em',
+              display: 'flex', alignItems: 'center', gap: 6,
+              boxShadow: '0 0 15px rgba(244,63,94,0.2)',
+            }}>
+              ⚡ Pasang Apl
+            </button>
+          )}
           <a href="../../index.html" style={{
             textDecoration: 'none',
             padding: '8px 12px', borderRadius: 12,
