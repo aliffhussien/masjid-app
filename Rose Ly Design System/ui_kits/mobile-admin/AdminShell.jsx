@@ -348,7 +348,8 @@ function AdminShell() {
         } catch {}
       }}>
         <main style={{
-          flex: 1, overflowY: 'auto', padding: 20, paddingBottom: 110,
+          flex: 1, overflowY: 'auto', padding: 20,
+          paddingBottom: 'calc(110px + env(safe-area-inset-bottom))',
           position: 'relative', zIndex: 5,
         }}>
         <Tab logoUrl={profile.logoUrl} setLogoUrl={updateLogo} mosqueName={profile.mosqueName} mosqueAddress={profile.mosqueAddress} zone={profile.zone} />
@@ -357,10 +358,12 @@ function AdminShell() {
 
       {/* Bottom tab nav */}
       <nav style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0,
-        background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(40px)',
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: 'rgba(0,0,0,0.80)', backdropFilter: 'blur(40px)',
+        WebkitBackdropFilter: 'blur(40px)',
         borderTop: '1px solid rgba(255,255,255,0.05)',
-        padding: '12px 16px', paddingBottom: 18,
+        padding: '12px 16px',
+        paddingBottom: 'calc(12px + env(safe-area-inset-bottom))',
         display: 'flex', justifyContent: 'space-around', zIndex: 50,
       }}>
         {TABS.map(t => {

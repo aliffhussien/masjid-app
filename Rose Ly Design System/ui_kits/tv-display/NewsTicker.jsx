@@ -73,23 +73,36 @@ function NewsTicker({ tickerSpeed = 40 }) {
       </div>
 
       <div style={{
-        width: 200, flexShrink: 0, position: 'relative', overflow: 'hidden',
+        width: 270, flexShrink: 0, position: 'relative', overflow: 'hidden',
         background: 'linear-gradient(135deg, rgba(8,8,14,0.97) 0%, rgba(18,18,28,0.95) 100%)',
         borderLeft: '1px solid rgba(255,255,255,0.10)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px 0 20px'
       }}>
         <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: 'var(--rl-accent, #f43f5e)' }} />
-        <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 20px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: '0.45em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap' }}>
-              {brandings[brandIdx].label}
-            </span>
-            <span style={{
-              fontSize: brandings[brandIdx].value.length > 15 ? 11 : 15,
-              fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.015em', lineHeight: 1, whiteSpace: 'nowrap'
-            }}>
-              {brandings[brandIdx].value}
-            </span>
-          </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
+          <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: '0.45em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {brandings[brandIdx].label}
+          </span>
+          <span style={{
+            fontSize: brandings[brandIdx].value.length > 15 ? 11 : 15,
+            fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.015em', lineHeight: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+          }}>
+            {brandings[brandIdx].value}
+          </span>
+        </div>
+        
+        {/* Discreet Pairing QR Core Asset Tag */}
+        <div style={{
+          background: 'white', padding: 4, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.5)', flexShrink: 0, marginLeft: 12,
+          border: '1px solid rgba(255,255,255,0.10)',
+        }}>
+          <img
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=54x54&color=010103&data=${encodeURIComponent(window.location.origin + '/ui_kits/mobile-admin/index.html')}`}
+            width="44" height="44"
+            alt="Mobile Admin Connection QR"
+            style={{ display: 'block', borderRadius: 4 }}
+          />
         </div>
       </div>
 
