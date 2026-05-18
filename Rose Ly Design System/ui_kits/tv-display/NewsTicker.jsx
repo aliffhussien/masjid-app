@@ -4,7 +4,7 @@
 const { useState, useEffect } = React;
 
 function NewsTicker({ tickerSpeed = 40 }) {
-  const items = window.RL.tickerItems;
+  const [items, setItems] = useState(() => window.RL.tickerItems || []);
   const brandings = window.RL.brandings;
   const [brandIdx, setBrandIdx] = useState(0);
 
@@ -13,9 +13,23 @@ function NewsTicker({ tickerSpeed = 40 }) {
     return () => clearInterval(t);
   }, [brandings.length]);
 
+  // Dynamically load live news feed and blend with mosque notifications
+  useEffect(() => {
+    if (window.RL_NEWS) {
+      window.RL_NEWS.fetchNews().then(liveNews => {
+        if (liveNews && liveNews.length > 0) {
+          // Blend: Mosque Notifications first, followed by Live News
+          setItems([...(window.RL.tickerItems || []), ...liveNews]);
+        }
+      }).catch(err => {
+        console.warn('Failed to load live news, using fallback ticker items:', err);
+      });
+    }
+  }, []);
+
   // Duplicate for seamless loop boundary
   const doubled = [...items, ...items].map((it, idx) => ({ ...it, key: idx }));
-  const dur = Math.round(4800 / tickerSpeed);
+  const dur = Math.round((items.length * 960) / tickerSpeed);
 
   return (
     <footer style={{

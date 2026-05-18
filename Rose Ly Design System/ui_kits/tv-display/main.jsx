@@ -3,6 +3,7 @@ import '../../shared/init.js';
 // Import core shared utilities and state (they assign themselves to window)
 import '../../shared/state.js';
 import '../../shared/solat.js';
+import '../../shared/news.js';
 
 // Import local page tokens
 import './tokens.js';
