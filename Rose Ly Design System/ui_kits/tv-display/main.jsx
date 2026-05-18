@@ -19,13 +19,15 @@ import './NewsTicker.jsx';
 import './PhaseOverlay.jsx';
 
 // Now define and render the TVApp component
-const { useState: reactUseState, useEffect: reactUseEffect } = React;
+const { useState: reactUseState, useEffect: reactUseEffect, useRef: reactUseRef } = React;
 
 function TVApp() {
   const [time, setTime] = reactUseState(new Date());
   const [slideIdx, setSlideIdx] = reactUseState(0);
   const [phase, setPhase] = reactUseState('NORMAL');
   const [weatherCode, setWeatherCode] = reactUseState(0);
+  const [countdown, setCountdown] = reactUseState('');
+  const phaseStartRef = reactUseRef(null);
 
   // Live profile sync
   const [liveProfile] = window.RL_STATE?.useProfile() || [{}];
@@ -73,6 +75,34 @@ function TVApp() {
       setPhase(liveProfile.activePhase === 'OFF' ? 'NORMAL' : liveProfile.activePhase);
     }
   }, [liveProfile.activePhase]);
+
+  // Real-time phase countdown — tracks elapsed since phase began
+  reactUseEffect(() => {
+    phaseStartRef.current = Date.now();
+  }, [phase]);
+
+  reactUseEffect(() => {
+    const COUNTDOWN_PHASES = ['PRE_AZAN', 'IQAMAH'];
+    if (!COUNTDOWN_PHASES.includes(phase)) { setCountdown(''); return; }
+
+    const getDurationMs = () => {
+      const p = window.RL_STATE?.loadProfile() || {};
+      if (phase === 'PRE_AZAN') return (p.preAzanSecs ?? 60) * 1000;
+      if (phase === 'IQAMAH')   return (p.iqamahDuration ?? 600) * 1000;
+      return 0;
+    };
+    const tick = () => {
+      const elapsed = Date.now() - (phaseStartRef.current || Date.now());
+      const remMs   = Math.max(0, getDurationMs() - elapsed);
+      const remSecs = Math.floor(remMs / 1000);
+      const m = Math.floor(remSecs / 60);
+      const s = remSecs % 60;
+      setCountdown(`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`);
+    };
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [phase]);
 
   // Real-time GPS-synced Live weather fetching
   reactUseEffect(() => {
@@ -230,7 +260,7 @@ function TVApp() {
       </div>
 
       <style>{`#stage main, #stage main *, #stage button { pointer-events: auto; }`}</style>
-      <window.PhaseOverlay phase={phase} prayer={overlayPrayer} countdown={phase === 'PRE_AZAN' ? '00:00:23' : '00:03:45'} />
+      <window.PhaseOverlay phase={phase} prayer={overlayPrayer} countdown={countdown} />
       {/* Demo controls — visible if URL contains 'demo' */}
       {window.location.search.toLowerCase().includes('demo') && (
         <div style={{
