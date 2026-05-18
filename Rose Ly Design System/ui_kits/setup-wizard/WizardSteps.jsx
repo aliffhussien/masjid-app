@@ -338,6 +338,35 @@ function Finish({ chosenMosque, logoUrl }) {
         ))}
       </div>
 
+      {/* Dynamic QR Code for instant phone pairing */}
+      {showCTAs && (
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+          padding: '16px 20px', borderRadius: 20, width: '100%',
+          animation: 'rl-pop 600ms cubic-bezier(0.34,1.56,0.64,1)',
+          boxShadow: 'inset 0 0 12px rgba(255,255,255,0.01)',
+        }}>
+          <p style={{ margin: 0, fontSize: 8, fontWeight: 900, color: 'rgba(255,255,255,0.40)', letterSpacing: '0.25em', textTransform: 'uppercase' }}>
+            Imbas Untuk Kawalan Telefon
+          </p>
+          <div style={{
+            background: 'white', padding: 8, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+          }}>
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&color=010103&data=${encodeURIComponent(window.location.origin + '/ui_kits/mobile-admin/index.html')}`}
+              width="120" height="120"
+              alt="QR Code Admin"
+              style={{ display: 'block', borderRadius: 6 }}
+            />
+          </div>
+          <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.25)', fontStyle: 'italic', letterSpacing: '-0.01em' }}>
+            Buka kamera telefon & halakan ke kod di atas
+          </span>
+        </div>
+      )}
+
       {/* Handoff CTAs — slide in once everything's ticked */}
       <div style={{
         width: '100%', display: 'flex', flexDirection: 'column', gap: 8,
