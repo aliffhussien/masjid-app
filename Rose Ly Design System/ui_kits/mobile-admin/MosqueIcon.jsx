@@ -1,11 +1,9 @@
-/* global React */
-// MosqueIcon.jsx — one and only logo tile.
-// Always uses profile.logoUrl if uploaded; otherwise the default Rose Ly mark.
+import logoMark from '../../assets/logo-mark.png';
 
 function MosqueIcon({ size = 40, logoUrl = null }) {
   return (
     <img
-      src={logoUrl || '../../assets/logo-mark.png'}
+      src={logoUrl || logoMark}
       width={size} height={size} alt=""
       style={{
         width: size, height: size,
