@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <title>Rose Ly · Mobile Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="../../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: #020617;
+      font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+      color: white; -webkit-font-smoothing: antialiased;
+    }
+    .frame-wrap {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(244,63,94,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 50% 100%, rgba(74,35,73,0.20) 0%, transparent 60%),
+        #14091a;
+      padding: 16px;
+    }
+    .frame {
+      position: relative;
+      width: 412px; height: 900px;
+      border-radius: 50px;
+      background: #020617;
+      box-shadow:
+        0 0 0 12px #18181b,
+        0 0 0 14px #27272a,
+        0 50px 120px rgba(0,0,0,0.7),
+        inset 0 0 0 1px rgba(255,255,255,0.05);
+      overflow: hidden;
+    }
+    .frame::before {
+      /* Notch */
+      content: '';
+      position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+      width: 100px; height: 22px;
+      background: #000;
+      border-radius: 999px;
+      z-index: 100;
+    }
+    .frame::after {
+      /* Status bar dummy */
+      content: '';
+    }
+    .status-bar {
+      position: absolute; top: 0; left: 0; right: 0; height: 42px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px;
+      z-index: 99;
+      pointer-events: none;
+      font-size: 13px; font-weight: 700; color: white;
+    }
+    .status-bar .right { display: flex; gap: 5px; align-items: center; }
+    .status-bar .bars  { display: flex; gap: 2px; align-items: flex-end; height: 10px; }
+    .status-bar .bars span { width: 3px; background: white; border-radius: 1px; }
+    .status-bar .bars span:nth-child(1) { height: 4px; }
+    .status-bar .bars span:nth-child(2) { height: 6px; }
+    .status-bar .bars span:nth-child(3) { height: 8px; }
+    .status-bar .bars span:nth-child(4) { height: 10px; }
+    .status-bar .battery {
+      width: 24px; height: 11px; border: 1.5px solid white; border-radius: 3px;
+      position: relative; padding: 1.5px;
+    }
+    .status-bar .battery::after {
+      content: ''; position: absolute; right: -3px; top: 3px; width: 2px; height: 4px;
+      background: white; border-radius: 0 1px 1px 0;
+    }
+    .status-bar .battery span {
+      display: block; width: 70%; height: 100%; background: white; border-radius: 1px;
+    }
+    .app-area {
+      position: absolute; inset: 0;
+      padding-top: 42px;
+    }
+    .app-area > div { height: 100%; }
+
+    /* Scale frame to fit viewport if it's smaller */
+    @media (max-height: 940px) {
+      .frame { transform: scale(calc((100vh - 32px) / 900)); transform-origin: center center; }
+    }
+    @media (max-width: 460px) {
+      .frame { transform: scale(calc((100vw - 32px) / 412)); transform-origin: center center; }
+    }
+
+    /* Microinteractions — press feedback on every button + better tap targets */
+    button {
+      transition: transform 0.12s ease, filter 0.15s ease, background 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    button:active:not(:disabled) {
+      transform: scale(0.96);
+      filter: brightness(0.92);
+    }
+    /* Ensure touch targets are at least 36px tall on mobile */
+    @media (pointer: coarse) {
+      button { min-height: 36px; }
+    }
+    /* Smooth scrolling */
+    .app-area, main { scroll-behavior: smooth; }
+    /* Better focus ring */
+    input:focus, textarea:focus, select:focus {
+      box-shadow: 0 0 0 3px var(--rl-accent-dim, rgba(244,63,94,0.25));
+    }
+    /* Typography hierarchy — clearer scale + line-heights */
+    h1, h2, h3, h4 { letter-spacing: -0.025em; }
+    h1 { line-height: 1; }
+    h2 { line-height: 1.1; }
+    h3 { line-height: 1.15; }
+    p  { line-height: 1.5; }
+    /* Better italic feel on display titles */
+    h1[style*="italic"], h2[style*="italic"] { font-feature-settings: "ss01"; }
+    /* Number readability */
+    [class*="tabular"] { font-variant-numeric: tabular-nums; }
+    main > * {
+      animation: rl-tab-fade 280ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    @keyframes rl-tab-fade {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame-wrap">
+    <div class="frame">
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="right">
+          <div class="bars"><span></span><span></span><span></span><span></span></div>
+          <div class="battery"><span></span></div>
+        </div>
+      </div>
+      <div class="app-area" id="app"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/ui_kits/mobile-admin/main.jsx"></script>
+</body>
+</html>

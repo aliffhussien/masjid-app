@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <title>Rose Ly · TV Display</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="../../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;700;900&family=Cairo:wght@200;400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/svg-clock.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: #010103; color: white;
+      font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Scale a fixed 1920×1080 canvas to fit the viewport */
+    .stage-wrap {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: #010103;
+      overflow: hidden;
+    }
+    .stage {
+      width: 1920px; height: 1080px;
+      position: relative; overflow: hidden;
+      transform-origin: center center;
+      background: #010103;
+    }
+    .vfx-grain {
+      position: absolute; inset: 0; pointer-events: none; z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      opacity: 0.025;
+    }
+    .vfx-vignette {
+      position: absolute; inset: 0; pointer-events: none; z-index: 9998;
+      background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.4) 100%);
+    }
+    /* (no phase switcher — TV display is the public kiosk view; phase overlays
+       are driven by the admin remote, not by viewers of this kit) */
+  </style>
+</head>
+<body>
+  <div class="stage-wrap">
+    <div class="stage" id="stage">
+      <div id="app"></div>
+      <audio id="rl-preazan-audio" src="../../assets/Menjelang_Azan.mp3" preload="auto"></audio>
+      <audio id="rl-quran-audio" preload="auto"></audio>
+      <!-- Audio unlock overlay — first-visit only, primes the audio for autoplay -->
+      <div id="rl-audio-unlock" style="
+        position: absolute; inset: 0; z-index: 100000;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(10,6,16,0.85); backdrop-filter: blur(20px);
+        cursor: pointer;">
+        <div style="text-align: center; max-width: 380px; padding: 0 32px;">
+          <div style="width: 72px; height: 72px; margin: 0 auto 24px;
+                      background: rgba(244,63,94,0.15); border: 2px solid rgba(244,63,94,0.40);
+                      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                      color: #fb7185;
+                      animation: rl-pulse 2s ease-in-out infinite;">
+            <svg width="32" height="32" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+            </svg>
+          </div>
+          <h2 style="margin: 0; font-size: 22px; font-weight: 900; text-transform: uppercase;
+                     letter-spacing: -0.025em; color: white; font-style: italic;">
+            Sentuh untuk Aktifkan Audio
+          </h2>
+          <p style="margin: 12px 0 0; font-size: 12px; font-weight: 700;
+                    color: rgba(255,255,255,0.55); line-height: 1.5;">
+            Browser perlu kebenaran sekali untuk memainkan audio Menjelang Azan.
+          </p>
+        </div>
+        <style>
+          @keyframes rl-pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.06); opacity: 0.8; } }
+        </style>
+      </div>
+      <div class="vfx-grain"></div>
+      <div class="vfx-vignette"></div>
+    </div>
+  </div>
+  <script type="module" src="/ui_kits/tv-display/main.jsx"></script>
+  <script type="module">
+    // Fit stage to viewport — robust across iframe / standalone / resize.
+    function fitStage() {
+      const stage = document.getElementById('stage');
+      if (!stage) return;
+      const w = window.innerWidth  || document.documentElement.clientWidth;
+      const h = window.innerHeight || document.documentElement.clientHeight;
+      const scale = Math.min(w / 1920, h / 1080);
+      stage.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener('resize', fitStage);
+    window.addEventListener('load',   fitStage);
+    if (window.ResizeObserver) {
+      new ResizeObserver(fitStage).observe(document.documentElement);
+    }
+    fitStage();
+    // Refit a couple times shortly after load — belt-and-suspenders for iframe layout
+    setTimeout(fitStage, 50);
+    setTimeout(fitStage, 300);
+
+    // Audio unlock — first interaction primes audio for autoplay later
+    (function () {
+      const overlay = document.getElementById('rl-audio-unlock');
+      const audio   = document.getElementById('rl-preazan-audio');
+      if (!overlay || !audio) return;
+      // Skip if iframe (LivePreview embeds this — no need to ask there)
+      try {
+        if (window.self !== window.top) { overlay.remove(); return; }
+      } catch {}
+      const unlock = () => {
+        // Prime BOTH audio elements so neither gets blocked later
+        ['rl-preazan-audio', 'rl-quran-audio'].forEach(id => {
+          try {
+            const a = document.getElementById(id);
+            if (!a) return;
+            a.muted = true;
+            const p = a.play();
+            if (p && p.catch) p.catch(()=>{});
+            setTimeout(() => { try { a.pause(); a.currentTime = 0; a.muted = false; } catch {} }, 80);
+          } catch {}
+        });
+        overlay.style.transition = 'opacity 400ms ease';
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 450);
+      };
+      overlay.addEventListener('click', unlock);
+      overlay.addEventListener('touchstart', unlock, { passive: true });
+    })();
+  </script>
+</body>
+</html>

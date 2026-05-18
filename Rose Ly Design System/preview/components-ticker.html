@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="_card.css"></head>
+<body class="sky-bg" style="height:130px; padding:0; overflow:hidden">
+  <div class="grain"></div>
+  <div class="card glass" style="position:relative; z-index:1; height:100%; margin:18px 22px; border-radius:40px; display:flex; overflow:hidden">
+    <!-- scrolling area -->
+    <div style="flex:1; position:relative; display:flex; align-items:center; overflow:hidden">
+      <div style="position:absolute; inset:0 auto 0 0; width:50px; background:linear-gradient(to right, rgba(0,0,0,0.4), transparent); z-index:2"></div>
+      <div style="position:absolute; inset:0 0 0 auto; width:50px; background:linear-gradient(to left, rgba(0,0,0,0.4), transparent); z-index:2"></div>
+      <div style="display:flex; align-items:center; gap:14px; white-space:nowrap; padding-left:36px; animation: marquee 30s linear infinite">
+        <span style="padding:3px 12px; background:rgba(244,63,94,0.25); color:#fda4af; border:1px solid rgba(244,63,94,0.4); border-radius:999px; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:0.15em">MAKLUMAN</span>
+        <p style="font-weight:900; font-size:20px; font-style:italic; letter-spacing:-0.015em; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.6))">Gotong-royong perdana Sabtu ini, jam 8:00 pagi.</p>
+        <span style="color:rgba(255,255,255,0.15); font-weight:100; font-size:28px">·</span>
+        <span style="padding:3px 12px; background:rgba(59,130,246,0.20); color:#93c5fd; border:1px solid rgba(59,130,246,0.30); border-radius:999px; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:0.15em">BERITA</span>
+        <p style="font-weight:900; font-size:20px; font-style:italic; letter-spacing:-0.015em; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.6))">Bank Negara kekal OPR pada 3.00% pada mesyuarat terkini.</p>
+      </div>
+    </div>
+    <!-- brand stripe -->
+    <div style="width:180px; flex-shrink:0; background:linear-gradient(135deg, rgba(8,8,14,0.97) 0%, rgba(18,18,28,0.95) 100%); border-left:1px solid rgba(255,255,255,0.1); position:relative; display:flex; align-items:center; justify-content:center">
+      <div style="position:absolute; left:0; top:0; bottom:0; width:3px; background:#f43f5e"></div>
+      <div style="text-align:center">
+        <div style="font-size:8px; font-weight:900; letter-spacing:0.45em; color:rgba(255,255,255,0.35); text-transform:uppercase">ENGINEERED BY</div>
+        <div style="font-size:13px; font-weight:900; letter-spacing:-0.02em; text-transform:uppercase; margin-top:4px">Aliff Hussien</div>
+      </div>
+    </div>
+  </div>
+  <style>@keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }</style>
+</body></html>

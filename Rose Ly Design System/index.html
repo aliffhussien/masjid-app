@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <title>Rose Ly</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#e11d48">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Rose Ly">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="assets/logo-mark.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; min-height: 100%;
+      background: #0a0610; color: white;
+      font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    body {
+      background:
+        radial-gradient(ellipse at 20% -10%, rgba(244,63,94,0.18) 0%, transparent 50%),
+        radial-gradient(ellipse at 90% 30%, rgba(168,37,74,0.12) 0%, transparent 55%),
+        radial-gradient(ellipse at 50% 110%, rgba(74,35,73,0.30) 0%, transparent 60%),
+        linear-gradient(180deg, #1c0e21 0%, #0a0610 60%, #04020a 100%);
+      min-height: 100vh;
+      padding: 64px 32px 48px;
+    }
+
+    .vfx-grain {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      opacity: 0.025;
+    }
+
+    main {
+      position: relative; z-index: 1;
+      max-width: 1100px; margin: 0 auto;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center; margin-bottom: 56px;
+      display: flex; flex-direction: column; align-items: center;
+      overflow: visible;
+    }
+    .hero img {
+      width: 96px; height: 96px;
+      filter: drop-shadow(0 20px 40px rgba(244,63,94,0.4));
+      margin-bottom: 24px;
+      animation: heroIn 900ms cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    .hero h1 {
+      font-size: clamp(40px, 6vw, 64px); font-weight: 900; letter-spacing: 0;
+      font-style: italic; text-transform: uppercase; line-height: 1.3;
+      filter: drop-shadow(0 4px 20px rgba(244,63,94,0.3));
+      animation: heroIn 1000ms cubic-bezier(0.34,1.56,0.64,1) 100ms both;
+      margin: 0; padding: 0.15em 0.6em;
+      display: inline-flex; align-items: baseline; gap: 0.35em;
+      word-spacing: 0;
+      overflow: visible;
+    }
+    .hero h1 span {
+      background: linear-gradient(90deg, #ffffff 0%, #fda4af 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      padding-right: 0.15em;
+    }
+    .hero .tag {
+      margin-top: 18px;
+      font-size: 11px; font-weight: 900; letter-spacing: 0.45em; text-transform: uppercase;
+      color: #fda4af;
+      display: inline-flex; align-items: center; gap: 14px;
+      animation: heroIn 700ms ease 300ms both;
+    }
+    .hero .tag span { width: 24px; height: 1px; background: rgba(253,164,175,0.5); }
+
+    @keyframes heroIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Status pill — shows current setup state */
+    .status {
+      display: inline-flex; align-items: center; gap: 10px;
+      margin: 28px auto 0;
+      padding: 10px 18px; border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(8px);
+      font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+      color: rgba(255,255,255,0.65);
+      animation: heroIn 700ms ease 500ms both;
+    }
+    .status .dot { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
+    .status.ready .dot { background: #10b981; box-shadow: 0 0 10px #10b981; }
+    .status b { color: white; font-weight: 900; letter-spacing: -0.01em; text-transform: none; }
+
+    /* Cards grid */
+    .grid {
+      display: grid; gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    .card {
+      position: relative;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 28px;
+      padding: 28px 26px 26px;
+      text-decoration: none; color: inherit;
+      transition: all 0.25s ease;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      animation: cardIn 700ms cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(244,63,94,0.30);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.4), 0 0 60px rgba(244,63,94,0.15);
+    }
+    .card:nth-child(1) { animation-delay: 400ms; }
+    .card:nth-child(2) { animation-delay: 500ms; }
+    .card:nth-child(3) { animation-delay: 600ms; }
+    .card:nth-child(4) { animation-delay: 700ms; }
+
+    .card.featured {
+      background: linear-gradient(135deg, rgba(244,63,94,0.16), rgba(168,37,74,0.10));
+      border-color: rgba(244,63,94,0.35);
+    }
+    .card.featured:hover { border-color: #f43f5e; box-shadow: 0 30px 60px rgba(0,0,0,0.4), 0 0 80px rgba(244,63,94,0.30); }
+
+    .card .badge {
+      position: absolute; top: 18px; right: 18px;
+      padding: 4px 10px; border-radius: 999px;
+      background: rgba(244,63,94,0.20);
+      border: 1px solid rgba(244,63,94,0.40);
+      color: #fda4af;
+      font-size: 9px; font-weight: 900; letter-spacing: 0.25em; text-transform: uppercase;
+    }
+
+    .card .icon {
+      width: 56px; height: 56px; border-radius: 18px;
+      background: rgba(244,63,94,0.12);
+      border: 1px solid rgba(244,63,94,0.20);
+      display: flex; align-items: center; justify-content: center;
+      color: #fb7185; margin-bottom: 22px;
+    }
+    .card .step-num {
+      font-size: 10px; font-weight: 900; letter-spacing: 0.3em; text-transform: uppercase;
+      color: rgba(253,164,175,0.6); margin-bottom: 6px;
+    }
+    .card h3 {
+      font-size: 22px; font-weight: 900; letter-spacing: -0.025em;
+      text-transform: uppercase; line-height: 1.1; margin-bottom: 10px;
+    }
+    .card p {
+      font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.55);
+      line-height: 1.55;
+      flex: 1;
+    }
+    .card .cta {
+      margin-top: 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 11px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase;
+      color: #fb7185;
+      transition: gap 0.2s ease;
+    }
+    .card:hover .cta { color: #fda4af; }
+    .card .cta svg { transition: transform 0.25s ease; }
+    .card:hover .cta svg { transform: translateX(4px); }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Reset action — small text link at the bottom */
+    .footer {
+      text-align: center;
+      margin-top: 64px;
+      animation: heroIn 700ms ease 1000ms both;
+    }
+    .footer .reset {
+      font: inherit; cursor: pointer;
+      background: transparent; border: none;
+      color: rgba(255,255,255,0.30);
+      font-size: 10px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase;
+      padding: 8px 14px; border-radius: 8px;
+    }
+    .footer .reset:hover { color: #fb7185; }
+    .footer p { font-size: 10px; color: rgba(255,255,255,0.20); margin-top: 12px; letter-spacing: 0.2em; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+  <div class="vfx-grain"></div>
+
+  <main>
+    <div class="hero">
+      <img src="assets/logo-mark.png" alt="Rose Ly">
+      <h1><span>Rose</span>&nbsp;<span>Ly</span></h1>
+      <div class="tag">
+        <span></span>
+        Sistem Paparan Masjid Pintar
+        <span></span>
+      </div>
+      <div class="status" id="status">
+        <span class="dot"></span>
+        <span id="statusText">Memuat…</span>
+      </div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="footer">
+      <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:18px;">
+        <a id="apkBtn" href="rose-ly.apk" download
+           style="padding:14px 22px; background:rgba(52,211,153,0.10); border:1px solid rgba(52,211,153,0.30); border-radius:14px; color:#34d399; text-decoration:none; font-size:11px; font-weight:900; letter-spacing:0.15em; text-transform:uppercase; display:inline-flex; align-items:center; gap:8px;">
+          📱 Muat Turun APK Android
+        </a>
+        <button id="pwaBtn"
+           style="padding:14px 22px; background:rgba(244,63,94,0.10); border:1px solid rgba(244,63,94,0.30); border-radius:14px; color:#fb7185; cursor:pointer; font:inherit; font-size:11px; font-weight:900; letter-spacing:0.15em; text-transform:uppercase; display:inline-flex; align-items:center; gap:8px;">
+          ⚡ Pasang Sebagai PWA
+        </button>
+        <a href="DEPLOY.md"
+           style="padding:14px 22px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.10); border-radius:14px; color:rgba(255,255,255,0.6); text-decoration:none; font-size:11px; font-weight:900; letter-spacing:0.15em; text-transform:uppercase; display:inline-flex; align-items:center; gap:8px;">
+          📘 Panduan Deploy
+        </a>
+      </div>
+      <button class="reset" id="resetBtn">↻ Reset Setup &amp; Mula Semula</button>
+      <p>Rose Ly Design System</p>
+    </div>
+  </main>
+
+  <script type="module" src="shared/state.js"></script>
+  <script type="module">
+    const profile = window.RL_STATE.loadProfile();
+    const ready = profile.setupComplete;
+
+    // Status pill
+    const status = document.getElementById('status');
+    const statusText = document.getElementById('statusText');
+    if (ready) {
+      status.classList.add('ready');
+      statusText.innerHTML = `Setup siap · <b>${profile.mosqueName}</b>`;
+    } else {
+      statusText.textContent = 'Setup belum selesai — mulakan dari Setup Wizard';
+    }
+
+    // Cards — order changes based on setup state (smart routing)
+    const cards = [
+      {
+        id: 'wizard',
+        href: 'ui_kits/setup-wizard/index.html',
+        step: ready ? null : 'Mula di sini',
+        badge: ready ? null : 'Langkah 1',
+        title: 'Setup Wizard',
+        body: ready
+          ? 'Tetapkan semula masjid, tukar lokasi, atau muat naik logo baru.'
+          : 'Cari masjid anda menggunakan GPS, muat naik logo, dan sediakan waktu solat dalam 1 minit.',
+        cta: ready ? 'Buka Wizard' : 'Mulakan',
+        featured: !ready,
+        icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>',
+      },
+      {
+        id: 'admin',
+        href: 'ui_kits/mobile-admin/index.html',
+        step: 'Untuk pengurus',
+        badge: null,
+        title: 'Mobile Admin',
+        body: 'Kawal paparan TV, tukar slaid, edit makluman, dan urus tetapan masjid dari telefon anda.',
+        cta: 'Buka Admin',
+        featured: ready,
+        icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>',
+      },
+      {
+        id: 'tv',
+        href: 'ui_kits/tv-display/index.html',
+        step: 'Pada TV masjid',
+        badge: null,
+        title: 'TV Display',
+        body: 'Paparan kiosk 1920×1080. Langit hidup, waktu solat, hadith berputar, dan ticker berita.',
+        cta: 'Buka Paparan TV',
+        icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>',
+      },
+      {
+        id: 'jumaat',
+        href: 'ui_kits/tv-display/jumaat.html',
+        step: 'Setiap Jumaat',
+        badge: 'Jumaat',
+        title: 'Mode Jumaat',
+        body: 'Paparan khas hari Jumaat — banner Jumaat Mubarak, pentas khutbah berwarna ungu dengan nota berputar.',
+        cta: 'Buka Mode Jumaat',
+        icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>',
+      },
+    ];
+
+    const grid = document.getElementById('grid');
+    cards.forEach(c => {
+      const a = document.createElement('a');
+      a.href = c.href;
+      a.className = 'card' + (c.featured ? ' featured' : '');
+      a.innerHTML = `
+        ${c.badge ? `<div class="badge">${c.badge}</div>` : ''}
+        <div class="icon">
+          <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">${c.icon}</svg>
+        </div>
+        ${c.step ? `<div class="step-num">${c.step}</div>` : ''}
+        <h3>${c.title}</h3>
+        <p>${c.body}</p>
+        <div class="cta">
+          ${c.cta}
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+        </div>
+      `;
+      grid.appendChild(a);
+    });
+
+    // Reset
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (!confirm('Padam tetapan masjid dan logo? Tindakan ini tidak boleh dibuat asal.')) return;
+      window.RL_STATE.resetProfile();
+      location.reload();
+    });
+
+    // PWA install — capture the prompt and trigger it on button click
+    let deferredPrompt = null;
+    const pwaBtn = document.getElementById('pwaBtn');
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      pwaBtn.style.opacity = '1';
+    });
+    pwaBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      } else {
+        alert('Buka di Chrome Android atau Safari iOS, lalu tap menu → "Add to Home Screen" / "Tambah ke Skrin Utama".');
+      }
+    });
+
+    // Hide APK button if file doesn't exist (avoid 404 confusion)
+    fetch('rose-ly.apk', { method: 'HEAD' }).then(r => {
+      if (!r.ok) document.getElementById('apkBtn').style.display = 'none';
+    }).catch(() => {
+      document.getElementById('apkBtn').style.display = 'none';
+    });
+
+    // Register service worker (PWA)
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

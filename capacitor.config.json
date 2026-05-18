@@ -1,0 +1,16 @@
+{
+  "appId": "com.alyamani.rosely",
+  "appName": "Rose Ly",
+  "webDir": "Rose Ly Design System/dist",
+  "android": {
+    "allowMixedContent": true,
+    "backgroundColor": "#0f172a"
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#0f172a",
+      "overlaysWebView": false
+    }
+  }
+}

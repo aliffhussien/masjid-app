@@ -1,0 +1,412 @@
+/* ============================================================
+   Rose Ly — Colors & Typography Tokens
+   ============================================================
+   Mirrors the design tokens used in rose-ly/web/src/index.css
+   and the THEMES + FONTS objects in src/constants/index.js.
+
+   Load via:
+     <link rel="stylesheet" href="colors_and_type.css">
+     <script src="https://cdn.tailwindcss.com"></script>  (optional)
+
+   Fonts are loaded from Google Fonts — no .woff2 in fonts/ folder
+   because the upstream codebase uses the same Google import.
+   If you need offline assets, download into ./fonts and update
+   the @import statements below.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;700;900&family=Cairo:wght@200;400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root {
+  /* ─── BASE PALETTE ───────────────────────────────────────── */
+  /* Backdrop — true near-black, never grey */
+  --bg-base:        #010103;     /* TV root background (RealitySky sits on top) */
+  --bg-slate-950:   #020617;     /* Tailwind slate-950 — admin shell base       */
+  --bg-slate-900:   #0f172a;     /* admin cards / wizard buttons                */
+  --bg-slate-800:   #1e293b;     /* hover / outlines                            */
+
+  /* Aubergine — the brand surface (logo tile, app icon, splash) */
+  --aubergine-200:  #d8b8d8;
+  --aubergine-400:  #a878a8;
+  --aubergine-600:  #6e4d75;
+  --aubergine-700:  #4a2349;
+  --aubergine-800:  #3a1c3a;
+  --aubergine-900:  #28132e;
+  --aubergine-950:  #1c0e21;
+  --aubergine-glow: rgba(168, 120, 168, 0.30);
+  --aubergine-bg-gradient: linear-gradient(180deg, #4a2349 0%, #28132e 100%);
+
+  /* Foreground — white ladder */
+  --fg-1:           #ffffff;     /* primary headings, prayer countdowns         */
+  --fg-2:           rgba(255,255,255,0.65); /* body text, hadith                */
+  --fg-3:           rgba(255,255,255,0.40); /* secondary labels                 */
+  --fg-4:           rgba(255,255,255,0.30); /* tertiary, meta                   */
+  --fg-5:           rgba(255,255,255,0.20); /* hint, tiny labels                */
+  --fg-6:           rgba(255,255,255,0.15); /* watermark, ghost dividers        */
+  --fg-7:           rgba(255,255,255,0.10); /* faint outlines                   */
+  --fg-8:           rgba(255,255,255,0.05); /* glass border, panel-card bg      */
+
+  /* ─── BRAND ACCENTS ──────────────────────────────────────── */
+  /* Emerald — Admin shell primary (default theme) */
+  --emerald-300:    #6ee7b7;
+  --emerald-400:    #34d399;
+  --emerald-500:    #10b981;     /* THEMES.emerald.primary                      */
+  --emerald-600:    #059669;     /* admin nav active, success                   */
+  --emerald-700:    #047857;
+  --emerald-950:    #022c22;     /* deep shadow color (e.g. shadow-emerald-950) */
+  --emerald-glow:   rgba(16,185,129,0.30);
+  --emerald-border: rgba(16,185,129,0.20);
+  --emerald-bg-gradient: linear-gradient(135deg, #064e3b 0%, #020617 100%);
+
+  /* Rose — TV display primary (active prayer, headers, footer brand stripe) */
+  --rose-300:       #fda4af;
+  --rose-400:       #fb7185;
+  --rose-500:       #f43f5e;     /* THEMES.rose.primary                         */
+  --rose-600:       #e11d48;     /* TV active-prayer pill                       */
+  --rose-700:       #be123c;
+  --rose-950:       #4c0519;
+  --rose-glow:      rgba(244,63,94,0.30);
+  --rose-border:    rgba(244,63,94,0.20);
+  --rose-bg-gradient: linear-gradient(135deg, #881337 0%, #020617 100%);
+
+  /* Sapphire / Blue — secondary admin (Remote button on mode select) */
+  --blue-300:       #93c5fd;
+  --blue-400:       #60a5fa;
+  --blue-500:       #3b82f6;     /* THEMES.blue.primary                         */
+  --blue-600:       #2563eb;
+  --blue-700:       #1d4ed8;
+  --blue-950:       #172554;
+  --blue-glow:      rgba(59,130,246,0.30);
+  --blue-bg-gradient: linear-gradient(135deg, #1e3a8a 0%, #020617 100%);
+
+  /* Gold / Amber — IQAMAH phase, paused state */
+  --amber-300:      #fcd34d;
+  --amber-400:      #fbbf24;
+  --amber-500:      #f59e0b;     /* THEMES.amber.primary                        */
+  --amber-600:      #d97706;
+  --amber-950:      #451a03;
+  --amber-glow:     rgba(245,158,11,0.30);
+  --amber-bg-gradient: linear-gradient(135deg, #78350f 0%, #020617 100%);
+
+  /* Steel / Monochrome — KHUTBAH text uses purple variant in Overlays */
+  --steel-300:      #d1d5db;
+  --steel-400:      #9ca3af;     /* THEMES.monochrome.primary                   */
+  --steel-500:      #71717a;     /* THEMES.monochrome.accent                    */
+  --steel-glow:     rgba(156,163,175,0.20);
+  --steel-bg-gradient: linear-gradient(135deg, #18181b 0%, #020617 100%);
+
+  /* Purple — used on KHUTBAH overlay only (text-purple-400, border-purple-500/20) */
+  --purple-400:     #c084fc;
+  --purple-500:     #a855f7;
+  --purple-bg:      rgba(168,85,247,0.10);
+
+  /* Semantic */
+  --color-live:     #ef4444;     /* live indicator dot (red-500)                */
+  --color-success:  var(--emerald-500);
+  --color-warning:  var(--amber-500);
+  --color-cloud:    var(--emerald-500);
+  --color-local:    var(--blue-500);
+
+  /* ─── ACTIVE THEME ALIASES — unified rose primary, aubergine surface ───── */
+  --color-primary:        var(--rose-500);
+  --color-primary-glow:   var(--rose-glow);
+  --color-border:         var(--rose-border);
+  --color-bg-gradient:    var(--aubergine-bg-gradient);
+  --color-accent:         var(--rose-500);
+  --color-surface:        var(--aubergine-800);
+  --color-surface-deep:   var(--aubergine-950);
+
+  /* ─── LAYOUT TOKENS ──────────────────────────────────────── */
+  --panel-blur:     0px;          /* Boss feedback: keep background visible      */
+  --panel-radius:   40px;         /* Big rounded corners are the brand           */
+  --card-radius:    24px;
+  --pill-radius:    9999px;
+  --layout-gap:     32px;
+  --safe-padding:   12px;         /* TV outer padding — small to maximize area   */
+
+  /* ─── ELEVATION (shadows) ────────────────────────────────── */
+  --shadow-panel:   0 20px 50px 0 rgba(0, 0, 0, 0.6),
+                    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-card:    0 10px 30px rgba(0, 0, 0, 0.4);
+  --shadow-button:  0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-glow-rose:    0 0 40px rgba(225, 29, 72, 0.4);
+  --shadow-glow-emerald: 0 0 40px rgba(16, 185, 129, 0.4);
+  --shadow-glow-amber:   0 0 40px rgba(245, 158, 11, 0.4);
+
+  /* ─── TYPOGRAPHY — base ──────────────────────────────────── */
+  --font-display:   "Outfit", system-ui, -apple-system, sans-serif;
+  --font-body:      "Outfit", system-ui, -apple-system, sans-serif;
+  --font-arabic:    "Cairo", "Outfit", sans-serif;
+  --font-mono:      "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+
+  /* Type scale — TV (1920×1080) */
+  --tv-hero:        12rem;        /* prayer name on overlay (PRE_AZAN, AZAN)     */
+  --tv-countdown:   10rem;        /* countdown clock during overlays             */
+  --tv-h1:          6rem;         /* announcement slide title                    */
+  --tv-h2:          4rem;
+  --tv-prayer-row:  2rem;         /* sidebar prayer row label                    */
+  --tv-time:        3rem;         /* header time AM/PM                           */
+  --tv-body:        1.5rem;       /* ticker headline                             */
+  --tv-meta:        0.625rem;     /* 10px — sidebar section label                */
+  --tv-micro:       0.5rem;       /* 8px — tracking-widest tertiary              */
+
+  /* Type scale — Admin (phone-first) */
+  --ui-h1:          2.25rem;      /* desktop tab heading                         */
+  --ui-h2:          1.5rem;       /* mosque name in header                       */
+  --ui-h3:          1rem;
+  --ui-body:        0.875rem;     /* form values                                 */
+  --ui-button:      0.75rem;
+  --ui-meta:        0.6875rem;
+  --ui-micro:       0.5625rem;    /* 9px — tab label                             */
+
+  --line-tight:     1;
+  --line-snug:      1.1;
+  --line-normal:    1.4;
+  --line-loose:     1.7;
+
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-bold:    700;
+  --weight-black:   900;
+
+  --tracking-tightest:  -0.04em;
+  --tracking-tighter:   -0.025em;
+  --tracking-tight:     -0.015em;
+  --tracking-normal:    0;
+  --tracking-wide:      0.05em;
+  --tracking-widest:    0.15em;
+  --tracking-mega:      0.3em;    /* tiny meta labels                            */
+  --tracking-extreme:   0.6em;    /* watermark, WAKTU SOLAT header               */
+}
+
+/* ============================================================
+   THEME OVERRIDES — switch active accent by adding a class to <html>
+   ============================================================ */
+.theme-emerald   { --color-primary: var(--emerald-500); --color-primary-glow: var(--emerald-glow); --color-border: var(--emerald-border); --color-bg-gradient: var(--emerald-bg-gradient); --color-accent: var(--emerald-500); }
+.theme-rose      { --color-primary: var(--rose-500);    --color-primary-glow: var(--rose-glow);    --color-border: var(--rose-border);    --color-bg-gradient: var(--rose-bg-gradient);    --color-accent: var(--rose-500); }
+.theme-blue      { --color-primary: var(--blue-500);    --color-primary-glow: var(--blue-glow);    --color-border: rgba(59,130,246,0.20); --color-bg-gradient: var(--blue-bg-gradient);    --color-accent: var(--blue-500); }
+.theme-amber     { --color-primary: var(--amber-500);   --color-primary-glow: var(--amber-glow);   --color-border: rgba(245,158,11,0.20); --color-bg-gradient: var(--amber-bg-gradient);   --color-accent: var(--amber-500); }
+.theme-mono      { --color-primary: var(--steel-400);   --color-primary-glow: var(--steel-glow);   --color-border: rgba(156,163,175,0.20);--color-bg-gradient: var(--steel-bg-gradient);   --color-accent: var(--steel-500); }
+
+/* ============================================================
+   SEMANTIC CLASSES — drop these on elements directly
+   ============================================================ */
+
+/* — Body */
+body {
+  background-color: var(--bg-base);
+  color: var(--fg-1);
+  font-family: var(--font-display);
+  font-weight: var(--weight-regular);
+  margin: 0;
+}
+
+/* — Display Typography */
+.t-hero {
+  font-family: var(--font-display);
+  font-weight: var(--weight-black);
+  font-size: var(--tv-hero);
+  line-height: var(--line-tight);
+  letter-spacing: var(--tracking-tighter);
+  text-transform: uppercase;
+  color: var(--fg-1);
+}
+.t-countdown {
+  font-family: var(--font-display);
+  font-weight: var(--weight-black);
+  font-size: var(--tv-countdown);
+  line-height: var(--line-tight);
+  letter-spacing: var(--tracking-tighter);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-1);
+}
+.t-h1 {
+  font-weight: var(--weight-black);
+  font-size: var(--ui-h1);
+  letter-spacing: var(--tracking-tighter);
+  line-height: var(--line-tight);
+  text-transform: uppercase;
+}
+.t-h2 {
+  font-weight: var(--weight-black);
+  font-size: var(--ui-h2);
+  letter-spacing: var(--tracking-tighter);
+  line-height: var(--line-snug);
+  text-transform: uppercase;
+}
+.t-prayer-row {
+  font-weight: var(--weight-black);
+  font-size: var(--tv-prayer-row);
+  letter-spacing: var(--tracking-tighter);
+  text-transform: uppercase;
+}
+.t-body {
+  font-weight: var(--weight-regular);
+  font-size: var(--ui-body);
+  line-height: var(--line-normal);
+  color: var(--fg-2);
+}
+.t-body-italic {
+  font-style: italic;
+  font-weight: var(--weight-bold);
+  font-size: var(--tv-body);
+  color: var(--fg-1);
+}
+.t-label {
+  font-weight: var(--weight-black);
+  font-size: var(--ui-micro);             /* 9px */
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-mega);   /* 0.3em */
+  color: var(--fg-4);
+}
+.t-label-bright {
+  font-weight: var(--weight-black);
+  font-size: var(--ui-micro);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-mega);
+  color: var(--color-primary);
+}
+.t-watermark {
+  font-weight: var(--weight-black);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-extreme); /* 1.5em — Global Islamic Time */
+  color: var(--fg-7);
+}
+.t-mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum";
+}
+.t-arabic {
+  font-family: var(--font-arabic);
+}
+
+/* — Drop-shadow utilities for legibility over the WebGL sky */
+.ds-sm { text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+.ds-md { text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
+.ds-lg { text-shadow: 0 4px 15px rgba(0,0,0,0.8); }
+.ds-glow-rose    { text-shadow: 0 0 40px rgba(244, 63, 94, 0.4),  0 2px 8px rgba(0,0,0,0.6); }
+.ds-glow-emerald { text-shadow: 0 0 40px rgba(16, 185, 129, 0.4), 0 2px 8px rgba(0,0,0,0.6); }
+.ds-glow-amber   { text-shadow: 0 0 40px rgba(245, 158, 11, 0.4), 0 2px 8px rgba(0,0,0,0.6); }
+
+/* — Glass panel (matches index.css.glass-panel) */
+.glass-panel {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(var(--panel-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--panel-blur)) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--shadow-panel);
+}
+.panel-standard {
+  background-color: rgba(0, 0, 0, 0.20);
+  border: 1px solid var(--color-border);
+  border-radius: var(--panel-radius);
+  transition: all 0.3s ease;
+}
+.panel-card {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-border);
+  border-radius: var(--card-radius);
+}
+
+/* — Pills / badges */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--pill-radius);
+  font-size: 0.625rem;        /* 10px */
+  font-weight: var(--weight-black);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  border: 1px solid currentColor;
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+.pill-makluman {
+  color: var(--rose-300);
+  background: rgba(244, 63, 94, 0.25);
+  border-color: rgba(244, 63, 94, 0.40);
+}
+.pill-info {
+  color: var(--blue-300);
+  background: rgba(59, 130, 246, 0.20);
+  border-color: rgba(59, 130, 246, 0.30);
+}
+
+/* — Buttons */
+.btn-primary {
+  font-family: var(--font-display);
+  font-weight: var(--weight-black);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  font-size: 0.75rem;
+  padding: 1rem 1.75rem;
+  background-color: var(--emerald-600);
+  color: white;
+  border-radius: 1.5rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(2, 44, 34, 0.6);
+  transition: transform 0.15s ease, background-color 0.2s ease;
+}
+.btn-primary:hover  { background-color: var(--emerald-500); }
+.btn-primary:active { transform: scale(0.95); }
+
+.btn-ghost {
+  font-weight: var(--weight-black);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  font-size: 0.625rem;
+  padding: 0.875rem 1.25rem;
+  background-color: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.5);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 1rem;
+  cursor: pointer;
+}
+
+/* — Live indicator dot */
+.dot-live {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-live);
+  box-shadow: 0 0 10px var(--color-live);
+  animation: dot-pulse 2s ease-in-out infinite;
+}
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1;   }
+  50%      { opacity: 0.4; }
+}
+
+/* — VFX (mirrors index.css) */
+.vfx-grain {
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 9999;
+}
+.vfx-vignette {
+  position: fixed; inset: 0;
+  background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.4) 100%);
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* — Fade-in keyframe (mirrors index.css) */
+@keyframes fadeIn {
+  from { opacity: 0; filter: blur(10px); }
+  to   { opacity: 1; filter: blur(0);    }
+}
+.animate-fade-in { animation: fadeIn 1s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+/* — Shimmer sweep (mirrors index.css) */
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%);  }
+}

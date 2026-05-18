@@ -1,0 +1,55 @@
+/* Rose Ly — SvgClock animation keyframes & per-digit mapping.
+ * Loaded by tv-display/index.html alongside SvgClock.jsx. */
+.svg-clock { display: block; overflow: visible; }
+.clock__digit {
+  animation-duration: 0.8s;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.svg-clock [data-digit="0"] .clock__digit:nth-child(10) { animation-name: svgd9R; }
+.svg-clock [data-digit="0"] .clock__digit:nth-child(1)  { animation-name: svgd0; }
+.svg-clock [data-digit="0"]:nth-child(1) .clock__digit:nth-child(3) { animation-name: svgd2R; }
+.svg-clock [data-digit="0"]:nth-child(2) .clock__digit:nth-child(4) { animation-name: svgd3R; }
+.svg-clock [data-digit="0"]:nth-child(3) .clock__digit:nth-child(6),
+.svg-clock [data-digit="0"]:nth-child(5) .clock__digit:nth-child(6) { animation-name: svgd5R; }
+.svg-clock [data-digit="0"]:nth-child(1) + [data-digit="0"] .clock__digit:nth-child(10) { visibility: hidden; }
+.svg-clock [data-digit="1"] .clock__digit:nth-child(1)  { animation-name: svgd0R; }
+.svg-clock [data-digit="1"] .clock__digit:nth-child(2)  { animation-name: svgd1; }
+.svg-clock [data-digit="2"] .clock__digit:nth-child(2)  { animation-name: svgd1R; }
+.svg-clock [data-digit="2"] .clock__digit:nth-child(3)  { animation-name: svgd2; }
+.svg-clock [data-digit="3"] .clock__digit:nth-child(3)  { animation-name: svgd2R; }
+.svg-clock [data-digit="3"] .clock__digit:nth-child(4)  { animation-name: svgd3; }
+.svg-clock [data-digit="4"] .clock__digit:nth-child(4)  { animation-name: svgd3R; }
+.svg-clock [data-digit="4"] .clock__digit:nth-child(5)  { animation-name: svgd4; }
+.svg-clock [data-digit="5"] .clock__digit:nth-child(5)  { animation-name: svgd4R; }
+.svg-clock [data-digit="5"] .clock__digit:nth-child(6)  { animation-name: svgd5; }
+.svg-clock [data-digit="6"] .clock__digit:nth-child(6)  { animation-name: svgd5R; }
+.svg-clock [data-digit="6"] .clock__digit:nth-child(7)  { animation-name: svgd6; }
+.svg-clock [data-digit="7"] .clock__digit:nth-child(7)  { animation-name: svgd6R; }
+.svg-clock [data-digit="7"] .clock__digit:nth-child(8)  { animation-name: svgd7; }
+.svg-clock [data-digit="8"] .clock__digit:nth-child(8)  { animation-name: svgd7R; }
+.svg-clock [data-digit="8"] .clock__digit:nth-child(9)  { animation-name: svgd8; }
+.svg-clock [data-digit="9"] .clock__digit:nth-child(9)  { animation-name: svgd8R; }
+.svg-clock [data-digit="9"] .clock__digit:nth-child(10) { animation-name: svgd9; }
+
+@keyframes svgd0  { from, 50% { stroke-dashoffset:  53; } to { stroke-dashoffset: 0; } }
+@keyframes svgd0R { from { stroke-dashoffset: 0; } 50%, to { stroke-dashoffset: -53; } }
+@keyframes svgd1  { from, 50% { stroke-dashoffset:  19; } to { stroke-dashoffset: 0; } }
+@keyframes svgd1R { from { stroke-dashoffset: 0; } 50%, to { stroke-dashoffset: -19; } }
+@keyframes svgd2  { from, 50% { stroke-dashoffset:  43; } to { stroke-dashoffset: 0; } }
+@keyframes svgd2R { from { stroke-dashoffset: 0; } 50%, to { stroke-dashoffset: -43; } }
+@keyframes svgd3  { from, 50% { stroke-dashoffset:  51; } to { stroke-dashoffset: 0; } }
+@keyframes svgd3R { from { stroke-dashoffset: 0; } 50%, to { stroke-dashoffset: -51; } }
+@keyframes svgd4  { from, 50% { stroke-dashoffset:  45; } to { stroke-dashoffset: 0; } }
+@keyframes svgd4R { from { stroke-dashoffset: 0; } 50%, to { stroke-dashoffset: -45; } }
+@keyframes svgd5  { from, 50% { stroke-dashoffset:  43; } to { stroke-dashoffset: 0; } }
+@keyframes svgd5R { from { stroke-dashoffset: 0; } 50%, to { stroke-dashoffset: -43; } }
+@keyframes svgd6  { from, 50% { stroke-dashoffset:  52; } to { stroke-dashoffset: 0; } }
+@keyframes svgd6R { from { stroke-dashoffset: 0; } 50%, to { stroke-dashoffset: -52; } }
+@keyframes svgd7  { from, 50% { stroke-dashoffset:  27; } to { stroke-dashoffset: 0; } }
+@keyframes svgd7R { from { stroke-dashoffset: 0; } 50%, to { stroke-dashoffset: -27; } }
+@keyframes svgd8  { from, 50% { stroke-dashoffset:  61; } to { stroke-dashoffset: 0; } }
+@keyframes svgd8R { from { stroke-dashoffset: 0; } 50%, to { stroke-dashoffset: -61; } }
+@keyframes svgd9  { from, 50% { stroke-dashoffset:  52; } to { stroke-dashoffset: 0; } }
+@keyframes svgd9R { from { stroke-dashoffset: 0; } 50%, to { stroke-dashoffset: -52; } }
