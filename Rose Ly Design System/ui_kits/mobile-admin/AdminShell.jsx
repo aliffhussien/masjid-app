@@ -238,6 +238,127 @@ function PinGate({ pin, onSuccess }) {
   );
 }
 
+// ── PWA Install bottom-sheet card ───────────────────────────────────────────
+function PwaInstallCard({ installPrompt, onDismiss, mosqueName }) {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const canInstall = !!installPrompt;
+
+  const doInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') onDismiss();
+  };
+
+  return (
+    <div style={{
+      position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 99998,
+      background: 'rgba(2,6,23,0.97)', backdropFilter: 'blur(24px)',
+      WebkitBackdropFilter: 'blur(24px)',
+      borderTop: '1px solid rgba(255,255,255,0.10)',
+      borderRadius: '24px 24px 0 0',
+      padding: '20px 20px env(safe-area-inset-bottom, 24px)',
+      display: 'flex', flexDirection: 'column', gap: 14,
+      boxShadow: '0 -20px 60px rgba(0,0,0,0.6)',
+      animation: 'rl-pwa-up 0.45s cubic-bezier(0.34,1.56,0.64,1)',
+    }}>
+      {/* Drag indicator */}
+      <div style={{ width: 36, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.15)', margin: '-4px auto 6px' }} />
+
+      {/* Title row */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 16, flexShrink: 0,
+            background: 'rgba(244,63,94,0.15)', border: '1px solid rgba(244,63,94,0.30)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24,
+          }}>📱</div>
+          <div>
+            <p style={{ margin: 0, fontSize: 15, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.01em', lineHeight: 1 }}>
+              Pasang Apl Admin
+            </p>
+            <p style={{ margin: '4px 0 0', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.45)', lineHeight: 1.3 }}>
+              {mosqueName ? `Kawalan ${mosqueName}` : 'Kawal TV terus dari skrin utama'}
+            </p>
+          </div>
+        </div>
+        <button onClick={onDismiss} style={{
+          font: 'inherit', cursor: 'pointer', flexShrink: 0,
+          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 10, width: 32, height: 32,
+          color: 'rgba(255,255,255,0.45)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>✕</button>
+      </div>
+
+      {/* Benefits */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '12px 14px' }}>
+        {[
+          ['⚡', 'Buka terus tanpa browser'],
+          ['🔔', 'Kawalan segera dalam genggaman'],
+          ['📶', 'Berfungsi walaupun offline'],
+        ].map(([icon, text]) => (
+          <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{icon}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.65)' }}>{text}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Android — native install */}
+      {canInstall && (
+        <button onClick={doInstall} style={{
+          font: 'inherit', cursor: 'pointer',
+          padding: '16px 20px', borderRadius: 18,
+          background: 'linear-gradient(135deg, #e11d48, #f43f5e)', color: 'white', border: 'none',
+          fontSize: 14, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
+          boxShadow: '0 12px 30px rgba(76,5,25,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        }}>
+          ⚡ Pasang di Skrin Utama
+        </button>
+      )}
+
+      {/* iOS — manual instructions */}
+      {isIOS && !canInstall && (
+        <div style={{ background: 'rgba(59,130,246,0.10)', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 16, padding: '14px 16px' }}>
+          <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 900, color: '#93c5fd', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+            Safari · Cara Pasang
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[
+              ['1', '⬆️', 'Ketik butang Share di bawah Safari'],
+              ['2', '➕', 'Pilih "Add to Home Screen"'],
+              ['3', '✓',  'Ketik "Add" di penjuru kanan atas'],
+            ].map(([n, icon, desc]) => (
+              <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 16 }}>{icon}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.65)' }}>{desc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Fallback for non-iOS, non-Chrome (desktop, etc.) */}
+      {!canInstall && !isIOS && (
+        <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.40)', textAlign: 'center', lineHeight: 1.5 }}>
+          Buka pautan ini di Chrome Android atau Safari iOS untuk pasang sebagai apl
+        </p>
+      )}
+
+      <button onClick={onDismiss} style={{
+        font: 'inherit', cursor: 'pointer', background: 'none', border: 'none',
+        color: 'rgba(255,255,255,0.28)', fontSize: 11, fontWeight: 700,
+        letterSpacing: '0.15em', textTransform: 'uppercase', padding: '4px 0',
+      }}>
+        Mungkin Nanti
+      </button>
+
+      <style>{`@keyframes rl-pwa-up { from { transform:translateY(100%); opacity:0; } to { transform:translateY(0); opacity:1; } }`}</style>
+    </div>
+  );
+}
+
 function AdminShell() {
   const [active, setActive] = useState('remote');
   const [profile, setProfile] = window.RL_STATE.useProfile();
@@ -252,6 +373,25 @@ function AdminShell() {
     const t = setTimeout(() => setPairedBanner(false), 4000);
     return () => clearTimeout(t);
   }, [pairedBanner]);
+
+  // PWA install card — shows after Tersambung banner fades, if not yet installed
+  const [showPwaCard, setShowPwaCard] = useState(false);
+  useEffect(() => {
+    if (pairedBanner) return; // wait for banner to finish
+    const wasPaired = new URLSearchParams(window.location.search).has('mosque');
+    if (!wasPaired) return;
+    const isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isInstalled) return;
+    const dismissed = sessionStorage.getItem('rl-pwa-card-dismissed');
+    if (dismissed) return;
+    const t = setTimeout(() => setShowPwaCard(true), 500);
+    return () => clearTimeout(t);
+  }, [pairedBanner]);
+
+  const dismissPwaCard = () => {
+    sessionStorage.setItem('rl-pwa-card-dismissed', '1');
+    setShowPwaCard(false);
+  };
 
   // PIN Code authentication state
   const hasPin = profile.adminPin && profile.adminPin.length === 4;
@@ -340,16 +480,16 @@ function AdminShell() {
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {installPrompt && (
+          {/* Install button — shown only when card isn't showing and not yet installed */}
+          {installPrompt && !showPwaCard && (
             <button onClick={triggerInstall} style={{
               font: 'inherit', cursor: 'pointer',
               padding: '8px 12px', borderRadius: 12,
               background: 'rgba(244,63,94,0.15)', border: '1px solid rgba(244,63,94,0.30)', color: '#fb7185',
               fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em',
               display: 'flex', alignItems: 'center', gap: 6,
-              boxShadow: '0 0 15px rgba(244,63,94,0.2)',
             }}>
-              ⚡ Pasang Apl
+              ⚡ Pasang
             </button>
           )}
           <a href="../../index.html" style={{
@@ -383,6 +523,15 @@ function AdminShell() {
         <Tab logoUrl={profile.logoUrl} setLogoUrl={updateLogo} mosqueName={profile.mosqueName} mosqueAddress={profile.mosqueAddress} zone={profile.zone} />
       </main>
       </PullToRefresh>
+
+      {/* PWA install bottom-sheet — slides up after Tersambung banner fades */}
+      {showPwaCard && (
+        <PwaInstallCard
+          installPrompt={installPrompt}
+          mosqueName={profile.mosqueName}
+          onDismiss={dismissPwaCard}
+        />
+      )}
 
       {/* Bottom tab nav */}
       <nav style={{
