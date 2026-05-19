@@ -3,6 +3,20 @@
 
 const { useState, useEffect } = React;
 
+// Official JAKIM-aligned Hijri date using Umm al-Qura calendar (same basis as Malaysia's official Islamic calendar)
+const HIJRI_MONTHS = ['Muharram','Safar','Rabiulawal','Rabiulakhir','Jamadilawal','Jamadilakhir','Rejab','Syaaban','Ramadan','Syawal','Zulkaedah','Zulhijah'];
+function computeHijri(date) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+      day: 'numeric', month: 'numeric', year: 'numeric',
+    }).formatToParts(date);
+    const d = parts.find(p => p.type === 'day')?.value || '';
+    const m = parseInt(parts.find(p => p.type === 'month')?.value || '1', 10) - 1;
+    const y = parts.find(p => p.type === 'year')?.value || '';
+    return `${d} ${HIJRI_MONTHS[m] || ''} ${y} H`;
+  } catch { return ''; }
+}
+
 function TVHeader({ time, mosqueName, mosqueAddress, logoUrl }) {
   // Subscribe to shared profile for live updates from the admin app.
   // Always call the hook (rules-of-hooks); fall back to defaults if state.js missing.
@@ -81,7 +95,9 @@ function TVHeader({ time, mosqueName, mosqueAddress, logoUrl }) {
     { label: 'LUSA: RAMALAN',     temp: '28° – 33°', icon: '☀️',  desc: 'Cerah'   },
   ])[weatherIdx];
   const months = ['JANUARI','FEBRUARI','MAC','APRIL','MEI','JUN','JULAI','OGOS','SEPTEMBER','OKTOBER','NOVEMBER','DISEMBER'];
-  const hijri = '14 Rabiulakhir 1448 H';
+  const hijri = computeHijri(time);
+  const mosqueId = profile?.mosqueId || '';
+  const pairCode = mosqueId ? mosqueId.replace(/-/g, '').slice(0, 6).toUpperCase() : '';
   const timeStr = time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
   const [clockTime, ampm] = timeStr.split(' ');
 
@@ -137,6 +153,11 @@ function TVHeader({ time, mosqueName, mosqueAddress, logoUrl }) {
             <span style={{ display: 'inline-block', width: 5, height: 5, borderRadius: '50%', background: 'var(--rl-accent, #f43f5e)', flexShrink: 0 }} />
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{address}</span>
           </p>
+          {pairCode && (
+            <p style={{ margin: '4px 0 0 0', fontSize: 9, fontWeight: 900, color: 'rgba(255,255,255,0.18)', letterSpacing: '0.3em', textTransform: 'uppercase', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))' }}>
+              KOD: <span style={{ color: 'rgba(255,255,255,0.40)' }}>{pairCode}</span>
+            </p>
+          )}
         </div>
       </div>
 

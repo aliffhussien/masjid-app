@@ -242,7 +242,17 @@ function AdminShell() {
   const [active, setActive] = useState('remote');
   const [profile, setProfile] = window.RL_STATE.useProfile();
   const [installPrompt, setInstallPrompt] = useState(null);
-  
+
+  // Connection banner — shows 4s when admin opened via pairing QR (?mosque=)
+  const [pairedBanner, setPairedBanner] = useState(
+    () => new URLSearchParams(window.location.search).has('mosque')
+  );
+  useEffect(() => {
+    if (!pairedBanner) return;
+    const t = setTimeout(() => setPairedBanner(false), 4000);
+    return () => clearTimeout(t);
+  }, [pairedBanner]);
+
   // PIN Code authentication state
   const hasPin = profile.adminPin && profile.adminPin.length === 4;
   const [authenticated, setAuthenticated] = useState(!hasPin);
@@ -295,6 +305,24 @@ function AdminShell() {
       {window.Onboarding && <window.Onboarding />}
       <div style={{ position: 'absolute', top: -180, right: -120, width: 380, height: 380, background: 'var(--rl-accent-dark, #e11d48)', borderRadius: '50%', filter: 'blur(180px)', opacity: 0.18, pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', bottom: -180, left: -120, width: 380, height: 380, background: '#4a2349', borderRadius: '50%', filter: 'blur(180px)', opacity: 0.35, pointerEvents: 'none' }} />
+
+      {/* Pairing success banner */}
+      {pairedBanner && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, zIndex: 99999,
+          background: 'linear-gradient(90deg, #059669, #10b981)',
+          padding: '14px 20px',
+          display: 'flex', alignItems: 'center', gap: 12,
+          animation: 'rl-slide-banner 0.35s cubic-bezier(0.34,1.56,0.64,1)',
+        }}>
+          <span style={{ fontSize: 22 }}>✓</span>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tersambung</div>
+            <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.85 }}>{profile.mosqueName || 'Masjid'} — kawalan aktif</div>
+          </div>
+          <style>{`@keyframes rl-slide-banner { from { opacity:0; transform:translateY(-100%); } to { opacity:1; transform:translateY(0); } }`}</style>
+        </div>
+      )}
 
       {/* Header */}
       <header style={{

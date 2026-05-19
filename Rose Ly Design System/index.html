@@ -369,7 +369,8 @@
     const closeQrBtn = document.getElementById('closeQrBtn');
 
     qrBtn.addEventListener('click', () => {
-      const adminUrl = window.location.origin + '/ui_kits/mobile-admin/index.html';
+      const mosqueId = window.RL_STATE?.loadProfile()?.mosqueId || '';
+      const adminUrl = window.location.origin + '/ui_kits/mobile-admin/index.html' + (mosqueId ? '?mosque=' + mosqueId : '');
       modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&color=010103&data=${encodeURIComponent(adminUrl)}`;
       qrModal.style.display = 'flex';
       setTimeout(() => {

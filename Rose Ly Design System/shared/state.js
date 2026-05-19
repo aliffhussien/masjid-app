@@ -175,7 +175,27 @@ import { createClient } from '@supabase/supabase-js';
     } catch (e) {}
   })();
 
-  window.RL_STATE = { loadProfile, saveProfile, resetProfile, useProfile, KEY };
+  // Fetch a mosque's profile from Supabase and write it into localStorage.
+  // Called by the admin app when it is opened via a pairing QR code.
+  async function fetchProfileFromCloud(mosqueId) {
+    if (!supabase || !mosqueId) return false;
+    try {
+      const { data, error } = await supabase
+        .from('mosques')
+        .select('profile')
+        .eq('id', mosqueId)
+        .maybeSingle();
+      if (error || !data?.profile) return false;
+      const remote = data.profile;
+      try { localStorage.setItem(KEY, JSON.stringify(remote)); } catch {}
+      try {
+        window.dispatchEvent(new CustomEvent('rl-profile-change', { detail: remote }));
+      } catch {}
+      return true;
+    } catch { return false; }
+  }
+
+  window.RL_STATE = { loadProfile, saveProfile, resetProfile, useProfile, fetchProfileFromCloud, KEY };
 
   // Apply theme CSS variables whenever profile changes — single source of truth.
   const THEMES = {
