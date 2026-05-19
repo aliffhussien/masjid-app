@@ -54,8 +54,15 @@ function TVApp() {
           ? 1 + activeCustom.length + (tickerItems.length ? 1 : 0) // World Clock + Custom Slides + News Slide
           : window.RL.slides.length + (tickerItems.length ? 1 : 0);
         const nextIdx = (i + 1) % Math.max(1, slidesCount);
-        // Save the active slide index to state so that the Remote dashboard updates in real-time!
-        window.RL_STATE?.saveProfile({ activeSlideIdx: nextIdx });
+        // Write slide index to localStorage directly — does NOT broadcast over WebSocket.
+        // The admin LivePreview card reads activeSlideIdx from localStorage via storage events
+        // which is local-only and zero network cost. Broadcasting every 8s was heating phones.
+        try {
+          const raw = JSON.parse(localStorage.getItem('rl-profile-v1') || '{}');
+          raw.activeSlideIdx = nextIdx;
+          localStorage.setItem('rl-profile-v1', JSON.stringify(raw));
+          window.dispatchEvent(new StorageEvent('storage', { key: 'rl-profile-v1' }));
+        } catch {}
         return nextIdx;
       });
     }, dur);

@@ -435,11 +435,10 @@ function AdminShell() {
 
   return (
     <div style={{
-      position: 'relative', minHeight: '100%', height: '100%',
+      position: 'relative', height: '100%',
       background: '#020617', color: 'white',
       fontFamily: '"Outfit", system-ui, sans-serif',
       display: 'flex', flexDirection: 'column',
-      overflow: 'hidden',
     }}>
       {/* Ambient glow blobs */}
       {window.Onboarding && <window.Onboarding />}
@@ -517,8 +516,9 @@ function AdminShell() {
       }}>
         <main style={{
           flex: 1, overflowY: 'auto', padding: 20,
-          paddingBottom: 'calc(110px + env(safe-area-inset-bottom))',
+          paddingBottom: 24,
           position: 'relative', zIndex: 5,
+          WebkitOverflowScrolling: 'touch',
         }}>
         <Tab logoUrl={profile.logoUrl} setLogoUrl={updateLogo} mosqueName={profile.mosqueName} mosqueAddress={profile.mosqueAddress} zone={profile.zone} />
       </main>
@@ -533,14 +533,14 @@ function AdminShell() {
         />
       )}
 
-      {/* Bottom tab nav */}
+      {/* Bottom tab nav — flex child, not fixed, avoids blank-space bug */}
       <nav style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
+        flexShrink: 0,
         background: 'rgba(0,0,0,0.80)', backdropFilter: 'blur(40px)',
         WebkitBackdropFilter: 'blur(40px)',
         borderTop: '1px solid rgba(255,255,255,0.05)',
-        padding: '12px 16px',
-        paddingBottom: 'calc(12px + env(safe-area-inset-bottom))',
+        padding: '10px 16px',
+        paddingBottom: 'max(10px, env(safe-area-inset-bottom))',
         display: 'flex', justifyContent: 'space-around', zIndex: 50,
       }}>
         {TABS.map(t => {

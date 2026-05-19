@@ -62,20 +62,42 @@ import { createClient } from '@supabase/supabase-js';
 
   // ── Broadcast channel ──────────────────────────────────────────────────────
   // One channel per mosque. Carries two events:
-  //   'sync' — full profile payload, applied by all listeners
+  //   'sync' — stripped profile payload, applied by all listeners
   //   'req'  — request for the current profile (admin sends on join; TV responds)
   let ch = null;
 
+  // Fields that change frequently (every slide tick) or are too large to broadcast.
+  // These are kept local only; only real admin-level changes cross devices.
+  const SKIP_BROADCAST = new Set([
+    'activeSlideIdx', 'slidePaused', 'prayerTimesSync',
+    'logoUrl',          // base64 data-URL can be 200KB — never broadcast
+  ]);
+
+  function stripForBroadcast(profile) {
+    return Object.fromEntries(
+      Object.entries(profile).filter(([k]) => !SKIP_BROADCAST.has(k))
+    );
+  }
+
   function applyIncoming(data) {
     if (!data) return;
-    // Merge: remote wins on identity fields; local admin-only fields (PIN, etc.) kept
-    const merged = Object.assign(readRaw() || {}, data);
+    // Merge: remote wins on settings; local-only fields (PIN, logo, slideIdx) kept
+    const current = readRaw() || {};
+    const merged  = { ...current, ...data };
     try { localStorage.setItem(KEY, JSON.stringify(merged)); } catch {}
     try { window.dispatchEvent(new CustomEvent('rl-profile-change', { detail: merged })); } catch {}
   }
 
+  // Debounced broadcast — max once per 600ms to avoid hammering the phone
+  // every time the TV auto-advances a slide (every 8s).
+  let _bTimer = null;
   function broadcast(profile) {
-    if (ch) ch.send({ type: 'broadcast', event: 'sync', payload: { d: profile } }).catch(() => {});
+    if (!ch) return;
+    clearTimeout(_bTimer);
+    _bTimer = setTimeout(() => {
+      const payload = stripForBroadcast(profile);
+      ch.send({ type: 'broadcast', event: 'sync', payload: { d: payload } }).catch(() => {});
+    }, 600);
   }
 
   function setupChannel(mosqueId) {
@@ -181,44 +203,52 @@ import { createClient } from '@supabase/supabase-js';
     return pin;
   }
 
+  let _discoverCleanupTimer = null;
   function setupDiscovery() {
     if (!supabase) return;
+    if (discoverCh) return; // already open
     discoverCh = supabase
       .channel('rl-discover', { config: { broadcast: { self: false } } })
       .on('broadcast', { event: 'find' }, ({ payload }) => {
-        // If our PIN matches, respond with full profile
-        if (payload?.pin === getSessionPin()) {
-          const p = loadProfile();
-          discoverCh.send({
-            type: 'broadcast', event: 'found',
-            payload: { pin: payload.pin, profile: p },
-          }).catch(() => {});
-        }
+        if (payload?.pin !== getSessionPin()) return;
+        const stripped = stripForBroadcast(loadProfile());
+        // Include mosqueId in response even though it's not in SKIP_BROADCAST
+        stripped.mosqueId = loadProfile().mosqueId;
+        discoverCh.send({
+          type: 'broadcast', event: 'found',
+          payload: { pin: payload.pin, profile: loadProfile() },
+        }).catch(() => {});
       })
       .subscribe();
   }
 
+  function closeDiscovery() {
+    if (!discoverCh || !supabase) return;
+    try { supabase.removeChannel(discoverCh); } catch {}
+    discoverCh = null;
+  }
+
   async function findMosqueByPin(pin) {
     if (!supabase || !pin) return null;
-    // Ensure discovery channel is open
     if (!discoverCh) setupDiscovery();
     return new Promise(resolve => {
-      const timeout = setTimeout(() => {
-        resolve(null);
-      }, 8000);
+      const done = (result) => {
+        clearTimeout(timeout);
+        // Close discovery channel 3s after pairing — no longer needed
+        clearTimeout(_discoverCleanupTimer);
+        _discoverCleanupTimer = setTimeout(closeDiscovery, 3000);
+        resolve(result);
+      };
+      const timeout = setTimeout(() => done(null), 8000);
 
       const onFound = ({ payload }) => {
         if (payload?.pin !== pin || !payload?.profile) return;
-        clearTimeout(timeout);
         discoverCh.off('broadcast', { event: 'found' }, onFound);
-        resolve(payload.profile);
+        done(payload.profile);
       };
       discoverCh.on('broadcast', { event: 'found' }, onFound);
-
-      discoverCh.send({
-        type: 'broadcast', event: 'find',
-        payload: { pin },
-      }).catch(() => { clearTimeout(timeout); resolve(null); });
+      discoverCh.send({ type: 'broadcast', event: 'find', payload: { pin } })
+        .catch(() => done(null));
     });
   }
 
