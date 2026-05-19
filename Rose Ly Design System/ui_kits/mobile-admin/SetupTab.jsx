@@ -3,150 +3,143 @@
 
 const { useState, useEffect, useRef } = React;
 
-// ── In-app QR scanner ────────────────────────────────────────────────────────
-// Needed because iPhone PWA storage is isolated from Safari — the only way to
-// pair is to scan the TV QR from INSIDE the installed app.
+// ── TV Pairing screen ─────────────────────────────────────────────────────────
+// Primary: PIN from TV (tap logo → shows 4-digit PIN → type here → instant sync)
+// Fallback: photo of QR using phone camera
 function QRScanner({ onPaired, onClose }) {
-  const [status, setStatus] = useState('idle'); // idle | scanning | error
-  const videoRef  = useRef(null);
-  const streamRef = useRef(null);
-  const rafRef    = useRef(null);
+  const [mode,    setMode]    = useState('pin'); // pin | photo
+  const [pin,     setPin]     = useState('');
+  const [finding, setFinding] = useState(false);
+  const [err,     setErr]     = useState('');
 
-  useEffect(() => () => stopCamera(), []);
-
-  const stopCamera = () => {
-    if (rafRef.current)  cancelAnimationFrame(rafRef.current);
-    if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
-    streamRef.current = null;
+  const applyProfile = (prof) => {
+    const KEY    = 'rl-profile-v1';
+    const stored = JSON.parse(localStorage.getItem(KEY) || '{}');
+    localStorage.setItem(KEY, JSON.stringify({ ...stored, ...prof }));
+    window.RL_STATE?.saveProfile({});
+    window.RL_STATE?.setupChannel(prof.mosqueId);
+    onPaired(prof.mosqueName || 'Masjid');
   };
 
-  const applyQR = (raw) => {
-    try {
-      const url = new URL(raw);
-      const id  = url.searchParams.get('mosque');
-      if (!id || id.length < 8) return false;
-      const KEY    = 'rl-profile-v1';
-      const stored = JSON.parse(localStorage.getItem(KEY) || '{}');
-      const inc    = { mosqueId: id };
-      const map    = { n: 'mosqueName', a: 'mosqueAddress', z: 'zone', t: 'theme' };
-      Object.entries(map).forEach(([k, field]) => {
-        const v = url.searchParams.get(k);
-        if (v) inc[field] = decodeURIComponent(v);
-      });
-      if (url.searchParams.get('s') === '1') inc.setupComplete = true;
-      localStorage.setItem(KEY, JSON.stringify({ ...stored, ...inc }));
-      window.RL_STATE?.saveProfile({});
-      window.RL_STATE?.setupChannel(id);
-      return inc.mosqueName || 'Masjid';
-    } catch { return false; }
-  };
-
-  const handleDetected = (raw) => {
-    stopCamera();
-    const name = applyQR(raw);
-    if (name) { onPaired(name); }
-    else      { setStatus('error'); }
-  };
-
-  // Decode a DOM image element using BarcodeDetector
-  const decodeImage = async (imgEl) => {
-    if (!('BarcodeDetector' in window)) return null;
-    try {
-      const codes = await new BarcodeDetector({ formats: ['qr_code'] }).detect(imgEl);
-      return codes[0]?.rawValue || null;
-    } catch { return null; }
-  };
-
-  // Start live camera scanning (getUserMedia + BarcodeDetector)
-  const startCamera = async () => {
-    if (!('BarcodeDetector' in window) || !navigator.mediaDevices?.getUserMedia) {
-      // Fallback: file input
-      document.getElementById('rl-qr-file').click();
+  // PIN submit — sends via Supabase broadcast to TV, TV responds with profile
+  const submitPin = async () => {
+    if (pin.length !== 4) { setErr('PIN mestilah 4 digit'); return; }
+    if (!window.RL_STATE?.isCloudSynced) {
+      setErr('Supabase tidak tersambung. Guna kaedah Foto QR.');
       return;
     }
-    setStatus('scanning');
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } },
-        audio: false,
-      });
-      streamRef.current = stream;
-      const video = videoRef.current;
-      video.srcObject = stream;
-      await video.play();
-      const detector = new BarcodeDetector({ formats: ['qr_code'] });
-      const tick = async () => {
-        if (!streamRef.current) return;
-        try {
-          const codes = await detector.detect(video);
-          if (codes.length) { handleDetected(codes[0].rawValue); return; }
-        } catch {}
-        rafRef.current = requestAnimationFrame(tick);
-      };
-      rafRef.current = requestAnimationFrame(tick);
-    } catch {
-      setStatus('error');
-      document.getElementById('rl-qr-file').click(); // fall back to photo
-    }
+    setFinding(true); setErr('');
+    const prof = await window.RL_STATE?.findMosqueByPin(pin);
+    setFinding(false);
+    if (prof) { applyProfile(prof); }
+    else      { setErr('PIN tidak dijumpai atau TV tiada sambungan. Cuba foto QR.'); }
   };
 
-  // File input fallback — works on all iOS when BarcodeDetector available
+  // Photo of QR — decode using BarcodeDetector
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setStatus('scanning');
-    const img = new Image();
-    img.src = URL.createObjectURL(file);
-    img.onload = async () => {
-      const raw = await decodeImage(img);
-      URL.revokeObjectURL(img.src);
-      if (raw) handleDetected(raw);
-      else     setStatus('error');
-    };
+    setFinding(true); setErr('');
+    try {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      await new Promise(r => { img.onload = r; img.onerror = r; });
+      if ('BarcodeDetector' in window) {
+        const codes = await new BarcodeDetector({ formats: ['qr_code'] }).detect(img);
+        URL.revokeObjectURL(img.src);
+        if (codes.length) {
+          const url = new URL(codes[0].rawValue);
+          const id  = url.searchParams.get('mosque');
+          if (id) {
+            const inc = { mosqueId: id };
+            const map = { n: 'mosqueName', a: 'mosqueAddress', z: 'zone', t: 'theme' };
+            Object.entries(map).forEach(([k, f]) => {
+              const v = url.searchParams.get(k);
+              if (v) inc[f] = decodeURIComponent(v);
+            });
+            if (url.searchParams.get('s') === '1') inc.setupComplete = true;
+            setFinding(false);
+            applyProfile(inc);
+            return;
+          }
+        }
+      }
+      setFinding(false);
+      setErr('QR tidak dikesan dalam gambar. Cuba ambil gambar lebih dekat.');
+    } catch {
+      setFinding(false);
+      setErr('Gagal membaca gambar. Cuba lagi.');
+    }
   };
 
-  const OVERLAY = { position: 'fixed', inset: 0, zIndex: 99999, background: '#020617', display: 'flex', flexDirection: 'column', fontFamily: '"Outfit", system-ui, sans-serif' };
-
-  if (status === 'scanning') {
-    return (
-      <div style={OVERLAY}>
-        <video ref={videoRef} playsInline muted style={{ flex: 1, width: '100%', objectFit: 'cover', background: '#000' }} />
-        {/* Viewfinder overlay */}
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <div style={{ width: 220, height: 220, border: '3px solid #f43f5e', borderRadius: 20, boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)' }} />
-        </div>
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '24px 24px 40px', textAlign: 'center', background: 'linear-gradient(transparent, rgba(0,0,0,0.7))' }}>
-          <p style={{ margin: '0 0 16px', fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.8)' }}>Halakan ke QR di skrin TV</p>
-          <button onClick={() => { stopCamera(); onClose(); }} style={{ font: 'inherit', cursor: 'pointer', padding: '12px 32px', borderRadius: 14, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: 13, fontWeight: 900 }}>Batal</button>
-        </div>
-      </div>
-    );
-  }
+  const S = { position: 'fixed', inset: 0, zIndex: 99999, background: '#020617', display: 'flex', flexDirection: 'column', fontFamily: '"Outfit", system-ui, sans-serif', color: 'white' };
+  const numBtn = (d) => (
+    <button key={d} onClick={() => { if (pin.length < 4) { setPin(p => p + d); setErr(''); } }} style={{ font: 'inherit', cursor: 'pointer', height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'white', fontSize: 22, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{d}</button>
+  );
 
   return (
-    <div style={OVERLAY}>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24, padding: 32, textAlign: 'center' }}>
-        <div style={{ fontSize: 64 }}>📷</div>
-        <div>
-          <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: 'white', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>Imbas QR Dari TV</p>
-          <p style={{ margin: '8px 0 0', fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.50)', lineHeight: 1.5 }}>
-            Tap logo masjid di skrin TV<br/>untuk paparkan QR kod
-          </p>
+    <div style={S}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '24px 24px 16px', gap: 16, overflowY: 'auto' }}>
+
+        {/* Tab switcher */}
+        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', borderRadius: 16, padding: 4, gap: 4 }}>
+          {[['pin','🔢 PIN TV'],['photo','📷 Foto QR']].map(([m, label]) => (
+            <button key={m} onClick={() => { setMode(m); setErr(''); setPin(''); }} style={{
+              flex: 1, font: 'inherit', cursor: 'pointer',
+              padding: '10px 0', borderRadius: 12, border: 'none',
+              background: mode === m ? 'rgba(244,63,94,0.25)' : 'transparent',
+              color: mode === m ? '#fda4af' : 'rgba(255,255,255,0.45)',
+              fontSize: 12, fontWeight: 900, letterSpacing: '0.1em',
+            }}>{label}</button>
+          ))}
         </div>
 
-        {status === 'error' && (
-          <div style={{ background: 'rgba(244,63,94,0.15)', border: '1px solid rgba(244,63,94,0.30)', borderRadius: 16, padding: '12px 16px' }}>
-            <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#fb7185' }}>QR tidak dikesan. Pastikan QR kelihatan jelas dan cuba lagi.</p>
+        {mode === 'pin' && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, flex: 1, justifyContent: 'center' }}>
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#fb7185', letterSpacing: '0.2em', textTransform: 'uppercase' }}>PIN Dari TV</p>
+              <p style={{ margin: '6px 0 0', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.40)', lineHeight: 1.5 }}>Tap logo masjid di TV → lihat 4-digit PIN → taip di sini</p>
+            </div>
+            {/* PIN dots */}
+            <div style={{ display: 'flex', gap: 16 }}>
+              {[0,1,2,3].map(i => (
+                <div key={i} style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${pin.length > i ? '#f43f5e' : 'rgba(255,255,255,0.20)'}`, background: pin.length > i ? '#f43f5e' : 'transparent', transition: 'all 0.15s ease', boxShadow: pin.length > i ? '0 0 10px #f43f5e' : 'none' }} />
+              ))}
+            </div>
+            {/* Numpad */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px 20px', maxWidth: 240, width: '100%' }}>
+              {[1,2,3,4,5,6,7,8,9].map(numBtn)}
+              <button onClick={() => setPin('')} style={{ font: 'inherit', cursor: 'pointer', height: 64, borderRadius: 32, background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em' }}>Padam</button>
+              {numBtn(0)}
+              <button onClick={() => setPin(p => p.slice(0,-1))} style={{ font: 'inherit', cursor: 'pointer', height: 64, borderRadius: 32, background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9.75L14.25 12m0 0l2.25 2.25M14.25 12l2.25-2.25M14.25 12L12 14.25m-2.58 4.92l-6.375-6.375a1.125 1.125 0 010-1.59L9.42 4.83c.211-.211.498-.33.796-.33H19.5a2.25 2.25 0 012.25 2.25v10.5a2.25 2.25 0 01-2.25 2.25h-9.284c-.298 0-.585-.119-.796-.33z" /></svg>
+              </button>
+            </div>
+            <button onClick={submitPin} disabled={pin.length !== 4 || finding} style={{ font: 'inherit', cursor: pin.length === 4 ? 'pointer' : 'default', width: '100%', maxWidth: 240, padding: '16px 0', borderRadius: 18, background: pin.length === 4 ? '#e11d48' : 'rgba(255,255,255,0.08)', color: 'white', border: 'none', fontSize: 14, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: pin.length === 4 ? 1 : 0.5, boxShadow: pin.length === 4 ? '0 8px 24px rgba(76,5,25,0.5)' : 'none' }}>
+              {finding ? 'Mencari TV...' : 'Sambung'}
+            </button>
           </div>
         )}
 
-        <button onClick={startCamera} style={{ font: 'inherit', cursor: 'pointer', width: '100%', maxWidth: 280, padding: '16px 20px', borderRadius: 18, background: '#e11d48', color: 'white', border: 'none', fontSize: 14, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', boxShadow: '0 12px 30px rgba(76,5,25,0.5)' }}>
-          Buka Kamera
-        </button>
+        {mode === 'photo' && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, flex: 1, justifyContent: 'center', textAlign: 'center' }}>
+            <div style={{ fontSize: 56 }}>📷</div>
+            <div>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: 'white' }}>Ambil Gambar QR TV</p>
+              <p style={{ margin: '8px 0 0', fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>Tap logo masjid di TV → QR muncul → ambil gambar skrin TV dengan telefon ini</p>
+            </div>
+            <button onClick={() => document.getElementById('rl-qr-file').click()} disabled={finding} style={{ font: 'inherit', cursor: 'pointer', width: '100%', maxWidth: 260, padding: '16px 0', borderRadius: 18, background: '#e11d48', color: 'white', border: 'none', fontSize: 14, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', boxShadow: '0 8px 24px rgba(76,5,25,0.5)' }}>
+              {finding ? 'Memproses...' : 'Buka Kamera'}
+            </button>
+            <input id="rl-qr-file" type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleFile} />
+          </div>
+        )}
 
-        <input id="rl-qr-file" type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleFile} />
+        {err && <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: '#fb7185', textAlign: 'center', lineHeight: 1.5, padding: '0 8px' }}>{err}</p>}
+      </div>
 
-        <button onClick={onClose} style={{ font: 'inherit', cursor: 'pointer', background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', fontSize: 12, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Batal</button>
+      <div style={{ padding: '16px 24px 40px' }}>
+        <button onClick={onClose} style={{ font: 'inherit', cursor: 'pointer', width: '100%', padding: '13px 0', borderRadius: 16, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.50)', fontSize: 12, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Batal</button>
       </div>
     </div>
   );

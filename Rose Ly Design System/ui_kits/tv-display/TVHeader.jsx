@@ -32,29 +32,41 @@ function showPairingOverlay() {
     'cursor:pointer',
   ].join(';');
 
+  const pin = window.RL_STATE?.getSessionPin?.() || '——';
+
   el.innerHTML = `
     <div onclick="event.stopPropagation()" style="
       background:rgba(12,6,22,0.99);border-radius:40px;
       border:1px solid rgba(255,255,255,0.12);
       padding:52px 64px;display:flex;flex-direction:column;
-      align-items:center;gap:28px;text-align:center;
+      align-items:center;gap:32px;text-align:center;
       box-shadow:0 40px 80px rgba(0,0,0,0.9);
-      animation:rl-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;">
-      <div>
-        <p style="margin:0;font-size:13px;font-weight:900;color:#fb7185;letter-spacing:0.4em;text-transform:uppercase">Sambung Telefon Admin</p>
-        <p style="margin:8px 0 0;font-size:30px;font-weight:900;text-transform:uppercase;letter-spacing:-0.025em">Imbas QR Ini</p>
+      animation:rl-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+      min-width:560px;">
+
+      <p style="margin:0;font-size:13px;font-weight:900;color:#fb7185;letter-spacing:0.4em;text-transform:uppercase">Sambung Telefon Admin</p>
+
+      <!-- PIN — primary method, always works -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;
+                  background:rgba(244,63,94,0.10);border:1px solid rgba(244,63,94,0.25);
+                  border-radius:28px;padding:28px 48px;">
+        <p style="margin:0;font-size:11px;font-weight:900;color:rgba(255,255,255,0.45);letter-spacing:0.35em;text-transform:uppercase">PIN Sambung</p>
+        <p style="margin:0;font-size:80px;font-weight:900;letter-spacing:0.3em;color:white;font-variant-numeric:tabular-nums;line-height:1">${pin}</p>
+        <p style="margin:0;font-size:14px;font-weight:700;color:rgba(255,255,255,0.50)">Admin → Setup → Masuk PIN → Sambung</p>
       </div>
-      <div style="background:white;padding:18px;border-radius:28px;box-shadow:0 20px 50px rgba(0,0,0,0.7)">
-        <img src="${qrSrc}" width="300" height="300" style="display:block;border-radius:12px" />
+
+      <p style="margin:0;font-size:12px;font-weight:700;color:rgba(255,255,255,0.30)">atau imbas QR</p>
+
+      <!-- QR — secondary method -->
+      <div style="background:white;padding:14px;border-radius:22px;box-shadow:0 12px 30px rgba(0,0,0,0.6)">
+        <img src="${qrSrc}" width="220" height="220" style="display:block;border-radius:10px" />
       </div>
-      <p style="margin:0;font-size:16px;font-weight:700;color:rgba(255,255,255,0.50);max-width:380px;line-height:1.6">
-        Buka tab <b style="color:white">Setup</b> dalam admin → tap <b style="color:white">Imbas QR Dari TV</b> → halakan ke kod ini
-      </p>
+
       <button onclick="document.getElementById('rl-pair-overlay').remove()" style="
         font:inherit;cursor:pointer;
-        padding:14px 44px;border-radius:22px;
-        background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);
-        color:rgba(255,255,255,0.65);font-size:14px;font-weight:900;
+        padding:12px 36px;border-radius:18px;
+        background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);
+        color:rgba(255,255,255,0.55);font-size:13px;font-weight:900;
         letter-spacing:0.2em;text-transform:uppercase">
         Tutup
       </button>

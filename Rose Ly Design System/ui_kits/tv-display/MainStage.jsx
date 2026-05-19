@@ -129,6 +129,13 @@ function AnnouncementSlide({ slide }) {
                opacity: isImageOnly ? 1 : 0.18,
              }} />
       )}
+      {/* Dark radial scrim — ensures text is readable against any sky background */}
+      {!isImageOnly && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+          background: 'radial-gradient(ellipse 80% 70% at 50% 55%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.20) 60%, transparent 100%)',
+        }} />
+      )}
       {/* Text overlay */}
       {!isImageOnly && (
         <div style={{
@@ -141,8 +148,9 @@ function AnnouncementSlide({ slide }) {
             <span style={{
               display: 'inline-block', padding: '6px 22px', borderRadius: 999,
               fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em',
-              background: 'rgba(225,29,72,0.20)', color: '#fda4af', border: '1px solid rgba(244,63,94,0.30)',
+              background: 'rgba(225,29,72,0.25)', color: '#fda4af', border: '1px solid rgba(244,63,94,0.40)',
               marginBottom: 32,
+              textShadow: '0 1px 4px rgba(0,0,0,0.8)',
             }}>{slide.label}</span>
           )}
           <div style={{ maxWidth: 760 }}>
@@ -150,15 +158,15 @@ function AnnouncementSlide({ slide }) {
               <h2 style={{
                 margin: 0, fontSize: 76, fontWeight: 900, textTransform: 'uppercase',
                 letterSpacing: '-0.04em', lineHeight: 1,
-                filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.7))',
+                textShadow: '0 2px 4px rgba(0,0,0,1), 0 8px 32px rgba(0,0,0,0.9), 0 20px 60px rgba(0,0,0,0.7)',
                 marginBottom: slide.content ? 28 : 0,
               }}>{slide.title}</h2>
             )}
             {slide.content && (
               <p style={{
-                margin: 0, fontSize: 26, fontWeight: 700, color: 'rgba(255,255,255,0.75)',
+                margin: 0, fontSize: 26, fontWeight: 700, color: 'rgba(255,255,255,0.92)',
                 lineHeight: 1.4, maxWidth: 620, marginLeft: 'auto', marginRight: 'auto',
-                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))',
+                textShadow: '0 2px 8px rgba(0,0,0,1), 0 4px 20px rgba(0,0,0,0.9)',
               }}>{slide.content}</p>
             )}
           </div>

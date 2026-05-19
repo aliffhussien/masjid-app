@@ -164,9 +164,70 @@ import { createClient } from '@supabase/supabase-js';
     });
   }
 
+  // ── PIN discovery ──────────────────────────────────────────────────────────
+  // TV generates a fresh 4-digit PIN each session, joins a shared 'rl-discover'
+  // channel, and responds to 'find:<pin>' requests with its full profile.
+  // Admin sends 'find:<pin>' and waits for 'found:<pin>' with the profile.
+  // No table, no QR, no camera — works on every device instantly.
+  let discoverCh = null;
+  const SESSION_PIN_KEY = 'rl-session-pin';
+
+  function getSessionPin() {
+    let pin = sessionStorage.getItem(SESSION_PIN_KEY);
+    if (!pin) {
+      pin = String(Math.floor(1000 + Math.random() * 9000));
+      sessionStorage.setItem(SESSION_PIN_KEY, pin);
+    }
+    return pin;
+  }
+
+  function setupDiscovery() {
+    if (!supabase) return;
+    discoverCh = supabase
+      .channel('rl-discover', { config: { broadcast: { self: false } } })
+      .on('broadcast', { event: 'find' }, ({ payload }) => {
+        // If our PIN matches, respond with full profile
+        if (payload?.pin === getSessionPin()) {
+          const p = loadProfile();
+          discoverCh.send({
+            type: 'broadcast', event: 'found',
+            payload: { pin: payload.pin, profile: p },
+          }).catch(() => {});
+        }
+      })
+      .subscribe();
+  }
+
+  async function findMosqueByPin(pin) {
+    if (!supabase || !pin) return null;
+    // Ensure discovery channel is open
+    if (!discoverCh) setupDiscovery();
+    return new Promise(resolve => {
+      const timeout = setTimeout(() => {
+        resolve(null);
+      }, 8000);
+
+      const onFound = ({ payload }) => {
+        if (payload?.pin !== pin || !payload?.profile) return;
+        clearTimeout(timeout);
+        discoverCh.off('broadcast', { event: 'found' }, onFound);
+        resolve(payload.profile);
+      };
+      discoverCh.on('broadcast', { event: 'found' }, onFound);
+
+      discoverCh.send({
+        type: 'broadcast', event: 'find',
+        payload: { pin },
+      }).catch(() => { clearTimeout(timeout); resolve(null); });
+    });
+  }
+
   // ── Init ───────────────────────────────────────────────────────────────────
   const initProfile = loadProfile();
-  setTimeout(() => setupChannel(initProfile.mosqueId), 50);
+  setTimeout(() => {
+    setupChannel(initProfile.mosqueId);
+    setupDiscovery(); // always join discovery so TV can respond to PIN requests
+  }, 50);
 
   // Legacy logo migration
   try {
@@ -181,7 +242,9 @@ import { createClient } from '@supabase/supabase-js';
     resetProfile,
     useProfile,
     fetchProfileFromCloud,
-    setupChannel,           // exposed so pair.js can re-init after mosqueId change
+    setupChannel,
+    findMosqueByPin,
+    getSessionPin,
     isCloudSynced: !!supabase,
     KEY,
   };
