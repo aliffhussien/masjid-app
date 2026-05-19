@@ -19,7 +19,19 @@ const getRainIntensity = (code) => {
   return 0.3;
 };
 
+// In preview mode (?preview=1) skip the WebGL canvas entirely — return a
+// simple CSS gradient so the admin LivePreview doesn't melt phone GPUs.
+const _isPreview = new URLSearchParams(window.location.search).get('preview') === '1';
+
 const Sky = memo(function Sky({ time, starDensity = 0.08, starSize = 1.2, weatherCode = null }) {
+  if (_isPreview) {
+    return (
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 0,
+        background: 'linear-gradient(180deg, #0a0418 0%, #12063a 40%, #0a0c1e 100%)',
+      }} />
+    );
+  }
   const canvasRef      = useRef(null);
   const timeRef        = useRef(time);
   const weatherCodeRef = useRef(weatherCode);

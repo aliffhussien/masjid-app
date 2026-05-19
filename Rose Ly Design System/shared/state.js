@@ -195,7 +195,7 @@ import { createClient } from '@supabase/supabase-js';
     } catch { return false; }
   }
 
-  window.RL_STATE = { loadProfile, saveProfile, resetProfile, useProfile, fetchProfileFromCloud, KEY };
+  window.RL_STATE = { loadProfile, saveProfile, resetProfile, useProfile, fetchProfileFromCloud, isCloudSynced: !!supabase, KEY };
 
   // Apply theme CSS variables whenever profile changes — single source of truth.
   const THEMES = {

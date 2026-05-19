@@ -30,6 +30,8 @@ const makeDrops = (cfg, w, h) =>
   }));
 
 function WeatherEffects({ weatherCode }) {
+  // Skip canvas rendering in preview mode — no animation loop on phone
+  if (new URLSearchParams(window.location.search).get('preview') === '1') return null;
   const canvasRef    = useRef(null);
   const animRef      = useRef(null);
   const dropsRef     = useRef([]);
