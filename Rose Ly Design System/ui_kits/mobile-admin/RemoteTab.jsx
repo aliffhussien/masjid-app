@@ -32,22 +32,43 @@ function Section({ title, children }) {
   );
 }
 
+// Compute the active slide list based on current profile + tokens
+function buildSlideList(profile) {
+  const tickerItems = window.RL?.tickerItems || [];
+  const customSlides = profile.slides || [];
+  const today = new Date().toISOString().slice(0, 10);
+  const activeCustom = customSlides.filter(s => {
+    if (s.active === false) return false;
+    if (s.startDate && s.startDate > today) return false;
+    if (s.endDate   && s.endDate   < today) return false;
+    return true;
+  });
+  const fallbackSlides = window.RL?.slides || [
+    { title: 'Jam Dunia' },
+    { title: 'Makluman Masjid' },
+  ];
+  if (activeCustom.length > 0) {
+    return [{ title: 'Jam Dunia' }, ...activeCustom, ...(tickerItems.length ? [{ title: 'Berita Terkini' }] : [])];
+  }
+  return [...fallbackSlides, ...(tickerItems.length ? [{ title: 'Berita Terkini' }] : [])];
+}
+
 function RemoteTab() {
-  const [profile, setProfile]   = window.RL_STATE.useProfile();
-  
-  const phase = profile.activePhase || 'OFF';
+  const [profile, setProfile] = window.RL_STATE.useProfile();
+
+  const phase    = profile.activePhase || 'OFF';
   const setPhase = (val) => setProfile({ activePhase: val });
 
-  const paused = profile.slidePaused || false;
+  const paused    = profile.slidePaused || false;
   const setPaused = (val) => setProfile({ slidePaused: val });
 
-  const duration = profile.slideDuration || 8;
+  const duration    = profile.slideDuration || 8;
   const setDuration = (val) => setProfile({ slideDuration: val });
 
   const toggles = {
-    enableNews: profile.enableNews ?? true,
+    enableNews:     profile.enableNews     ?? true,
     showWorldClock: profile.showWorldClock ?? true,
-    enableQuran: profile.enableQuran ?? true,
+    enableQuran:    profile.enableQuran    ?? true,
   };
   const setToggles = (val) => {
     const next = typeof val === 'function' ? val(toggles) : val;
@@ -55,79 +76,26 @@ function RemoteTab() {
   };
 
   const setDur = (key, val) => setProfile({ [key]: val });
-  const dur = (key, fallback) => Number(profile[key] ?? fallback);
+  const dur    = (key, fallback) => Number(profile[key] ?? fallback);
 
-  // Sync index of slide active on TV screen safely
   const activeSlideIdx = profile.activeSlideIdx || 0;
-  const currentSlideTitle = (() => {
-    const tickerItems = window.RL?.tickerItems || [];
-    const customSlides = profile.slides || [];
-    const today = new Date().toISOString().slice(0, 10);
-    const activeCustom = customSlides.filter(s => {
-      if (s.active === false) return false;
-      if (s.startDate && s.startDate > today) return false;
-      if (s.endDate   && s.endDate   < today) return false;
-      return true;
-    });
-    
-    const fallbackSlides = window.RL?.slides || [
-      { id: 'world', type: 'world-clock', title: 'Jam Dunia' },
-      { id: 'gotrong', type: 'announcement', title: 'Kempen Bersih Masjid' },
-      { id: 'tahfiz', type: 'announcement', title: 'Program Tahfiz Al-Quran' }
-    ];
-
-    const list = activeCustom.length > 0
-      ? [{ title: 'Jam Dunia' }, ...activeCustom, ...(tickerItems.length ? [{ title: 'Berita Terkini' }] : [])]
-      : [...fallbackSlides, ...(tickerItems.length ? [{ title: 'Berita Terkini' }] : [])];
-      
-    const cur = list[Math.min(activeSlideIdx, list.length - 1)] || list[0];
-    return cur ? `${Math.min(activeSlideIdx + 1, list.length)}/${list.length} — ${cur.title || (cur.type === 'poster' ? 'Poster' : 'Slaid')}` : 'Tiada Slaid';
-  })();
+  const slideList      = buildSlideList(profile);
+  const safIdx         = Math.min(activeSlideIdx, slideList.length - 1);
+  const cur            = slideList[safIdx] || slideList[0];
+  const currentSlideTitle = cur
+    ? `${safIdx + 1}/${slideList.length} — ${cur.title || (cur.type === 'poster' ? 'Poster' : 'Slaid')}`
+    : 'Tiada Slaid';
 
   const handlePrevSlide = () => {
+    const list = buildSlideList(profile);
     const curIdx = profile.activeSlideIdx || 0;
-    const tickerItems = window.RL?.tickerItems || [];
-    const customSlides = profile.slides || [];
-    const today = new Date().toISOString().slice(0, 10);
-    const activeCustom = customSlides.filter(s => {
-      if (s.active === false) return false;
-      if (s.startDate && s.startDate > today) return false;
-      if (s.endDate   && s.endDate   < today) return false;
-      return true;
-    });
-    const fallbackSlides = window.RL?.slides || [
-      { id: 'world', type: 'world-clock', title: 'Jam Dunia' },
-      { id: 'gotrong', type: 'announcement', title: 'Kempen Bersih Masjid' },
-      { id: 'tahfiz', type: 'announcement', title: 'Program Tahfiz Al-Quran' }
-    ];
-    const slidesCount = activeCustom.length > 0
-      ? 1 + activeCustom.length + (tickerItems.length ? 1 : 0)
-      : fallbackSlides.length + (tickerItems.length ? 1 : 0);
-    const prevIdx = (curIdx - 1 + slidesCount) % slidesCount;
-    setProfile({ activeSlideIdx: prevIdx });
+    setProfile({ activeSlideIdx: (curIdx - 1 + list.length) % list.length });
   };
 
   const handleNextSlide = () => {
+    const list = buildSlideList(profile);
     const curIdx = profile.activeSlideIdx || 0;
-    const tickerItems = window.RL?.tickerItems || [];
-    const customSlides = profile.slides || [];
-    const today = new Date().toISOString().slice(0, 10);
-    const activeCustom = customSlides.filter(s => {
-      if (s.active === false) return false;
-      if (s.startDate && s.startDate > today) return false;
-      if (s.endDate   && s.endDate   < today) return false;
-      return true;
-    });
-    const fallbackSlides = window.RL?.slides || [
-      { id: 'world', type: 'world-clock', title: 'Jam Dunia' },
-      { id: 'gotrong', type: 'announcement', title: 'Kempen Bersih Masjid' },
-      { id: 'tahfiz', type: 'announcement', title: 'Program Tahfiz Al-Quran' }
-    ];
-    const slidesCount = activeCustom.length > 0
-      ? 1 + activeCustom.length + (tickerItems.length ? 1 : 0)
-      : fallbackSlides.length + (tickerItems.length ? 1 : 0);
-    const nextIdx = (curIdx + 1) % slidesCount;
-    setProfile({ activeSlideIdx: nextIdx });
+    setProfile({ activeSlideIdx: (curIdx + 1) % list.length });
   };
 
   return (
@@ -226,10 +194,10 @@ function RemoteTab() {
 
       <Section title="Tempoh Fasa Solat">
         {[
-          { k: 'preAzanSecs',    label: 'Pra-Azan',     fb: 60 },
-          { k: 'azanDuration',   label: 'Azan',         fb: 4  },
-          { k: 'iqamahDuration', label: 'Iqamah',       fb: 4  },
-          { k: 'solatDuration',  label: 'Solat',        fb: 4  },
+          { k: 'preAzanSecs',    label: 'Pra-Azan', fb: 60  },
+          { k: 'azanDuration',   label: 'Azan',     fb: 300 },
+          { k: 'iqamahDuration', label: 'Iqamah',   fb: 600 },
+          { k: 'solatDuration',  label: 'Solat',    fb: 600 },
         ].map(row => {
           const secs = dur(row.k, row.fb);
           // unit pref stored per-row in profile so it persists

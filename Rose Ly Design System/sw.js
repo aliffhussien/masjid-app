@@ -1,19 +1,17 @@
 // Rose Ly — minimal service worker for PWA install + offline shell.
 // Keep it tiny: only cache the hub + critical assets, never the localStorage data.
 
-const CACHE = 'rl-shell-v1';
+// v2 — only pre-cache stable HTML entry points.
+// Vite bundles JS/CSS with content-hash filenames; those are cached dynamically
+// on first request via the fetch handler below, not pre-listed here.
+const CACHE = 'rl-shell-v2';
 const SHELL = [
   '/',
   '/index.html',
-  '/manifest.webmanifest',
-  '/colors_and_type.css',
-  '/assets/logo-mark.png',
-  '/assets/favicon.png',
-  '/shared/state.js',
-  '/shared/i18n.js',
-  '/shared/solat.js',
-  '/shared/news.js',
-  '/shared/ticker.js',
+  '/ui_kits/tv-display/index.html',
+  '/ui_kits/tv-display/jumaat.html',
+  '/ui_kits/mobile-admin/index.html',
+  '/ui_kits/setup-wizard/index.html',
 ];
 
 self.addEventListener('install', (event) => {

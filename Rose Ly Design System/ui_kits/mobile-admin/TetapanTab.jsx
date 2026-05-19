@@ -328,8 +328,28 @@ function TetapanTab({ logoUrl, setLogoUrl, mosqueName, mosqueAddress, zone }) {
       </Section>
 
       <Section title="Zon Waktu Solat">
-        <Field label="Zon" value={(zone || 'WLY01') + ' — Kuala Lumpur, Putrajaya'} />
-        <SyncWaktu zone={zone || 'WLY01'} />
+        <label style={{ display: 'block' }}>
+          <span style={{ fontSize: 9, fontWeight: 900, color: 'rgba(255,255,255,0.30)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Zon JAKIM</span>
+          <select
+            value={profile.zone || 'WLY01'}
+            onChange={e => setProfile({ zone: e.target.value })}
+            style={{
+              font: 'inherit', width: '100%',
+              marginTop: 6, padding: '12px 16px', borderRadius: 16,
+              background: 'rgba(0,0,0,0.40)',
+              border: '2px solid rgba(255,255,255,0.08)',
+              fontSize: 13, fontWeight: 700, color: 'white', outline: 'none',
+              cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none',
+            }}
+          >
+            {(window.RL_ZONES || []).map(z => (
+              <option key={z.code} value={z.code} style={{ background: '#1c0e21', color: 'white' }}>
+                {z.code} · {z.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <SyncWaktu zone={profile.zone || 'WLY01'} />
       </Section>
 
       <Section title="Bahasa / Language">

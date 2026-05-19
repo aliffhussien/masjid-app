@@ -1,6 +1,7 @@
 import '../../shared/init.js';
 
 import '../../shared/state.js';
+import '../../shared/zones.js';
 import './Splash.jsx';
 import './WizardSteps.jsx';
 

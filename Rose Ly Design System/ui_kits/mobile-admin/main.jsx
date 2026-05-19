@@ -1,6 +1,7 @@
 import '../../shared/init.js';
 import '../tv-display/tokens.js';
 import '../../shared/state.js';
+import '../../shared/zones.js';
 import '../../shared/i18n.js';
 import '../../shared/solat.js';
 import './MosqueIcon.jsx';

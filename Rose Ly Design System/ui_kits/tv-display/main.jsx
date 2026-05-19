@@ -201,9 +201,9 @@ function TVApp() {
     const preAzanSecs = p.preAzanSecs ?? 60;
     const seq = [
       ['PRE_AZAN', preAzanSecs * 1000],
-      ['AZAN',     (p.azanDuration  ?? 4) * 1000],
-      ['IQAMAH',   (p.iqamahDuration?? 4) * 1000],
-      ['SOLAT',    (p.solatDuration ?? 4) * 1000],
+      ['AZAN',     (p.azanDuration   ?? 300) * 1000],  // default 5 min
+      ['IQAMAH',   (p.iqamahDuration ?? 600) * 1000],  // default 10 min
+      ['SOLAT',    (p.solatDuration  ?? 600) * 1000],  // default 10 min
       ['NORMAL',   0],
     ];
     let i = 0;
