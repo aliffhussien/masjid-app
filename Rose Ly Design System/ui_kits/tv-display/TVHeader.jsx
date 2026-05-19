@@ -97,8 +97,6 @@ function TVHeader({ time, mosqueName, mosqueAddress, logoUrl }) {
   ])[weatherIdx];
   const months = ['JANUARI','FEBRUARI','MAC','APRIL','MEI','JUN','JULAI','OGOS','SEPTEMBER','OKTOBER','NOVEMBER','DISEMBER'];
   const hijri = computeHijri(time);
-  const mosqueId = profile?.mosqueId || '';
-  const pairCode = mosqueId ? mosqueId.replace(/-/g, '').slice(0, 6).toUpperCase() : '';
   const timeStr = time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
   const [clockTime, ampm] = timeStr.split(' ');
 
@@ -154,11 +152,6 @@ function TVHeader({ time, mosqueName, mosqueAddress, logoUrl }) {
             <span style={{ display: 'inline-block', width: 5, height: 5, borderRadius: '50%', background: 'var(--rl-accent, #f43f5e)', flexShrink: 0 }} />
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{address}</span>
           </p>
-          {pairCode && (
-            <p style={{ margin: '4px 0 0 0', fontSize: 9, fontWeight: 900, color: 'rgba(255,255,255,0.18)', letterSpacing: '0.3em', textTransform: 'uppercase', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))' }}>
-              KOD: <span style={{ color: 'rgba(255,255,255,0.40)' }}>{pairCode}</span>
-            </p>
-          )}
         </div>
       </div>
 

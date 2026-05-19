@@ -459,11 +459,18 @@ function Finish({ chosenMosque, logoUrl }) {
         ))}
       </div>
 
-      {/* Pairing QR — includes mosqueId so phone joins the correct Supabase channel */}
+      {/* Pairing QR — encodes full profile so phone gets correct data immediately */}
       {showCTAs && (() => {
-        const mosqueId = window.RL_STATE?.loadProfile()?.mosqueId || '';
-        const pairCode = mosqueId.replace(/-/g, '').slice(0, 6).toUpperCase();
-        const adminUrl = `${window.location.origin}/ui_kits/mobile-admin/index.html${mosqueId ? '?mosque=' + mosqueId : ''}`;
+        const prof = window.RL_STATE?.loadProfile() || {};
+        const qp = new URLSearchParams({
+          mosque: prof.mosqueId || '',
+          n: prof.mosqueName    || '',
+          a: prof.mosqueAddress || '',
+          z: prof.zone          || 'WLY01',
+          t: prof.theme         || 'rose',
+          s: '1',
+        });
+        const adminUrl = `${window.location.origin}/ui_kits/mobile-admin/index.html?${qp}`;
         return (
           <div style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
@@ -474,22 +481,13 @@ function Finish({ chosenMosque, logoUrl }) {
             <p style={{ margin: 0, fontSize: 8, fontWeight: 900, color: '#34d399', letterSpacing: '0.3em', textTransform: 'uppercase' }}>
               Sambung Telefon Admin
             </p>
-            <div style={{
-              background: 'white', padding: 10, borderRadius: 16,
-              boxShadow: '0 12px 30px rgba(0,0,0,0.5)',
-            }}>
+            <div style={{ background: 'white', padding: 10, borderRadius: 16, boxShadow: '0 12px 30px rgba(0,0,0,0.5)' }}>
               <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&color=010103&data=${encodeURIComponent(adminUrl)}`}
-                width="160" height="160" alt="QR Code Admin"
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&color=010103&data=${encodeURIComponent(adminUrl)}`}
+                width="180" height="180" alt="QR Code Admin"
                 style={{ display: 'block', borderRadius: 8 }}
               />
             </div>
-            {pairCode && (
-              <div style={{ textAlign: 'center' }}>
-                <p style={{ margin: 0, fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Kod sambung</p>
-                <p style={{ margin: '5px 0 0', fontSize: 24, fontWeight: 900, letterSpacing: '0.5em', color: '#34d399', fontVariantNumeric: 'tabular-nums' }}>{pairCode}</p>
-              </div>
-            )}
             <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.30)', textAlign: 'center' }}>
               Imbas dengan kamera telefon — admin terus tersambung ke TV ini
             </span>

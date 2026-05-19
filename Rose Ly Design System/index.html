@@ -369,8 +369,16 @@
     const closeQrBtn = document.getElementById('closeQrBtn');
 
     qrBtn.addEventListener('click', () => {
-      const mosqueId = window.RL_STATE?.loadProfile()?.mosqueId || '';
-      const adminUrl = window.location.origin + '/ui_kits/mobile-admin/index.html' + (mosqueId ? '?mosque=' + mosqueId : '');
+      const prof = window.RL_STATE?.loadProfile() || {};
+      const qp = new URLSearchParams({
+        mosque: prof.mosqueId    || '',
+        n: prof.mosqueName       || '',
+        a: prof.mosqueAddress    || '',
+        z: prof.zone             || 'WLY01',
+        t: prof.theme            || 'rose',
+        s: prof.setupComplete ? '1' : '0',
+      });
+      const adminUrl = window.location.origin + '/ui_kits/mobile-admin/index.html?' + qp;
       modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&color=010103&data=${encodeURIComponent(adminUrl)}`;
       qrModal.style.display = 'flex';
       setTimeout(() => {
