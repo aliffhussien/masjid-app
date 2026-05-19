@@ -29,9 +29,20 @@
   }
 
   function hhmm(t) {
-    // Normalise "5:50:00" or "05:50" → "05:50"
-    if (!t) return null;
-    const [h, m] = String(t).split(':');
+    if (!t && t !== 0) return null;
+    // Handle Unix timestamp (seconds or ms) — API sometimes returns epoch
+    const n = Number(t);
+    if (!isNaN(n) && String(t).indexOf(':') === -1) {
+      const d = new Date(n > 1e10 ? n : n * 1000); // seconds → ms if needed
+      if (!isNaN(d.getTime())) {
+        return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      }
+    }
+    // Handle "HH:MM" or "H:MM:SS"
+    const parts = String(t).split(':');
+    const h = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    if (isNaN(h) || isNaN(m)) return null;
     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
   }
 
@@ -71,5 +82,9 @@
     }
   }
 
-  window.RL_SOLAT = { fetchToday, FALLBACK };
+  function clearCache() {
+    try { localStorage.removeItem(CACHE_KEY); } catch {}
+  }
+
+  window.RL_SOLAT = { fetchToday, clearCache, FALLBACK };
 })();

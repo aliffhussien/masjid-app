@@ -15,7 +15,18 @@ function PrayerSidebar({ time }) {
   const profile = subscribed[0];
   const livePT  = profile?.prayerTimes;
 
-  const prayers = livePT
+  // Validate a stored time string — rejects "Invalid Date" artefacts
+  const isValidTime = (t) => {
+    if (!t || typeof t !== 'string') return false;
+    const parts = t.split(':');
+    if (parts.length < 2) return false;
+    const h = parseInt(parts[0], 10), m = parseInt(parts[1], 10);
+    return !isNaN(h) && !isNaN(m) && h >= 0 && h <= 23 && m >= 0 && m <= 59;
+  };
+
+  // If livePT has any invalid values, fall back to default entirely
+  const livePTValid = livePT && Object.values(livePT).every(isValidTime);
+  const prayers = livePTValid
     ? Object.entries(livePT).map(([name, time]) => ({ name, time }))
     : window.RL.prayers;
 
@@ -23,11 +34,16 @@ function PrayerSidebar({ time }) {
   const { next, countdown } = useMemo(() => {
     const now = time.getHours() * 60 + time.getMinutes();
     const withMins = prayers
-      .filter(p => !NON_PRAYERS.has(p.name))   // skip Imsak & Syuruk for "next"
+      .filter(p => !NON_PRAYERS.has(p.name))
       .map(p => {
-        const [hh, mm] = p.time.split(':').map(Number);
+        const parts = (p.time || '').split(':');
+        const hh = parseInt(parts[0], 10);
+        const mm = parseInt(parts[1], 10);
+        if (isNaN(hh) || isNaN(mm)) return null;
         return { ...p, mins: hh * 60 + mm };
-      });
+      })
+      .filter(Boolean);
+    if (!withMins.length) return { next: { name: '—' }, countdown: '--:--:--' };
     // Find next upcoming prayer; if all passed, wrap to first one tomorrow
     const upcoming = withMins.find(p => p.mins > now) || withMins[0];
 
@@ -44,8 +60,12 @@ function PrayerSidebar({ time }) {
   }, [time]);
 
   const fmt12 = (t) => {
-    try { return new Date(`1970-01-01T${t}:00`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }); }
-    catch { return t; }
+    if (!t || typeof t !== 'string') return '—';
+    try {
+      const d = new Date(`1970-01-01T${t}:00`);
+      if (isNaN(d.getTime())) return t;
+      return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    } catch { return t; }
   };
 
   return (

@@ -272,7 +272,71 @@ function RemoteTab() {
         })}
       </Section>
 
+      {/* Manual sync — broadcasts current full profile to TV */}
+      <SyncToTVButton profile={profile} setProfile={setProfile} />
+
       <style>{`@keyframes rl-live-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
+    </div>
+  );
+}
+
+function SyncToTVButton({ profile, setProfile }) {
+  const [state, setState] = useState('idle'); // idle | sending | done
+
+  const push = () => {
+    setState('sending');
+    // saveProfile({}) re-saves the current profile and broadcasts it
+    window.RL_STATE?.saveProfile({});
+    setTimeout(() => setState('done'), 600);
+    setTimeout(() => setState('idle'), 2200);
+  };
+
+  const isCloud = !!window.RL_STATE?.isCloudSynced;
+
+  return (
+    <div style={{
+      background: 'rgba(255,255,255,0.05)', borderRadius: 24,
+      border: '1px solid rgba(255,255,255,0.05)', padding: '16px 20px',
+      display: 'flex', flexDirection: 'column', gap: 10,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <h3 style={{ margin: 0, fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.3em', textTransform: 'uppercase' }}>
+          Hantar ke TV
+        </h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span style={{
+            width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+            background: isCloud ? '#34d399' : '#f59e0b',
+            boxShadow: `0 0 6px ${isCloud ? '#34d399' : '#f59e0b'}`,
+          }} />
+          <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: isCloud ? '#34d399' : '#fbbf24' }}>
+            {isCloud ? 'Broadcast' : 'Lokal'}
+          </span>
+        </div>
+      </div>
+      <button onClick={push} style={{
+        font: 'inherit', cursor: 'pointer',
+        padding: '14px 16px', borderRadius: 16,
+        background: state === 'done'
+          ? 'rgba(16,185,129,0.20)'
+          : state === 'sending'
+          ? 'rgba(244,63,94,0.25)'
+          : '#e11d48',
+        color: 'white', border: 'none',
+        fontSize: 12, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        transition: 'background 0.2s ease',
+        boxShadow: state === 'idle' ? '0 8px 24px rgba(76,5,25,0.5)' : 'none',
+      }}>
+        {state === 'done'    ? '✓ Dihantar ke TV'
+         : state === 'sending' ? 'Menghantar...'
+         : '📡 Push Semua ke TV'}
+      </button>
+      {!isCloud && (
+        <p style={{ margin: 0, fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.30)', lineHeight: 1.4 }}>
+          Tiada sambungan Supabase — hanya berfungsi dalam pelayar yang sama.
+        </p>
+      )}
     </div>
   );
 }

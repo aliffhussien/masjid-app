@@ -1,17 +1,27 @@
 /* Rose Ly — news fetcher.
- * Pulls free RSS feeds via rss2json (10k req/day free).
- * Caches 30 minutes in localStorage so we hit the API ~48× per device per day.
- * Falls back to hadith reminders if the API is down.
+ * Tries multiple Malaysian RSS feeds via rss2json (10k req/day free).
+ * Caches 30 minutes. Falls back to mosque notices if all feeds fail.
  */
 (function () {
   const CACHE_KEY = 'rl-news-cache-v1';
-  const CACHE_MIN = 30; // refresh every 30 minutes
+  const CACHE_MIN = 30;
 
-  // Pick one or rotate — keeping a single feed reduces quota usage
+  // Multiple feeds — tries in order until one returns results
   const FEEDS = [
     {
-      label: 'BERNAMA',
-      url: 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent('https://www.bernama.com/bm/index.php/rss/rss.php?id=1'),
+      label: 'AWANI',
+      url: 'https://api.rss2json.com/v1/api.json?rss_url=' +
+           encodeURIComponent('https://www.astroawani.com/rss.xml'),
+    },
+    {
+      label: 'FMT',
+      url: 'https://api.rss2json.com/v1/api.json?rss_url=' +
+           encodeURIComponent('https://www.freemalaysiatoday.com/feed/'),
+    },
+    {
+      label: 'MALAYMAIL',
+      url: 'https://api.rss2json.com/v1/api.json?rss_url=' +
+           encodeURIComponent('https://www.malaymail.com/feed'),
     },
   ];
 
@@ -29,13 +39,13 @@
   }
 
   async function fetchOnce(feed) {
-    const res = await fetch(feed.url);
+    const res = await fetch(feed.url, { signal: AbortSignal.timeout(6000) });
     if (!res.ok) throw new Error('http ' + res.status);
     const json = await res.json();
-    if (!json.items) throw new Error('no items');
+    if (!json.items?.length) throw new Error('empty');
     return json.items.slice(0, 6).map(it => ({
       source: feed.label,
-      title: (it.title || '').replace(/<[^>]+>/g, '').trim(),
+      title:  (it.title || '').replace(/<[^>]+>/g, '').trim(),
     })).filter(it => it.title);
   }
 
@@ -45,15 +55,15 @@
     for (const feed of FEEDS) {
       try {
         const items = await fetchOnce(feed);
-        if (items.length) {
-          writeCache(items);
-          return items;
-        }
-      } catch (e) { /* try next feed */ }
+        if (items.length) { writeCache(items); return items; }
+      } catch { /* try next feed */ }
     }
-    // All feeds failed → return null so caller can fall back to hadith
-    return null;
+    return null; // all failed — caller falls back to mosque notices
   }
 
-  window.RL_NEWS = { fetchNews };
+  function clearCache() {
+    try { localStorage.removeItem(CACHE_KEY); } catch {}
+  }
+
+  window.RL_NEWS = { fetchNews, clearCache };
 })();
