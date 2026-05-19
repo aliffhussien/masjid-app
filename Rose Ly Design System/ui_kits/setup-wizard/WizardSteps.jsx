@@ -459,37 +459,24 @@ function Finish({ chosenMosque, logoUrl }) {
         ))}
       </div>
 
-      {/* Pairing QR — encodes full profile so phone gets correct data immediately */}
+      {/* Pairing — show static 6-char code for admin to type */}
       {showCTAs && (() => {
-        const prof = window.RL_STATE?.loadProfile() || {};
-        const qp = new URLSearchParams({
-          mosque: prof.mosqueId || '',
-          n: prof.mosqueName    || '',
-          a: prof.mosqueAddress || '',
-          z: prof.zone          || 'WLY01',
-          t: prof.theme         || 'rose',
-          s: '1',
-        });
-        const adminUrl = `${window.location.origin}/ui_kits/mobile-admin/index.html?${qp}`;
+        const code = window.RL_STATE?.getMosqueCode?.() || '——————';
         return (
           <div style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
             background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.22)',
-            padding: '18px 20px', borderRadius: 22, width: '100%',
+            padding: '20px 20px', borderRadius: 22, width: '100%',
             animation: 'rl-pop 600ms cubic-bezier(0.34,1.56,0.64,1)',
           }}>
             <p style={{ margin: 0, fontSize: 8, fontWeight: 900, color: '#34d399', letterSpacing: '0.3em', textTransform: 'uppercase' }}>
               Sambung Telefon Admin
             </p>
-            <div style={{ background: 'white', padding: 10, borderRadius: 16, boxShadow: '0 12px 30px rgba(0,0,0,0.5)' }}>
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&color=010103&data=${encodeURIComponent(adminUrl)}`}
-                width="180" height="180" alt="QR Code Admin"
-                style={{ display: 'block', borderRadius: 8 }}
-              />
-            </div>
-            <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.30)', textAlign: 'center' }}>
-              Imbas dengan kamera telefon — admin terus tersambung ke TV ini
+            <p style={{ margin: 0, fontSize: 36, fontWeight: 900, letterSpacing: '0.4em', color: 'white', fontVariantNumeric: 'tabular-nums' }}>
+              {code}
+            </p>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.40)', textAlign: 'center', lineHeight: 1.5 }}>
+              Admin → tab Setup → Masuk Kod → taip kod di atas → Sambung
             </span>
           </div>
         );

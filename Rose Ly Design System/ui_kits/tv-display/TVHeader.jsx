@@ -4,67 +4,46 @@ import _logoMark from '../../assets/logo-mark.png';
 
 const { useState, useEffect } = React;
 
-// Pairing overlay — appended directly to document.body so it escapes any
-// CSS transform/filter on parent elements (which would break position:fixed).
+// Pairing overlay — appended to document.body, escapes CSS transforms.
+// Shows a static 6-char code derived from the permanent mosqueId.
+// Code never changes even after TV restarts — admin pairs once, syncs forever.
 function showPairingOverlay() {
   const existing = document.getElementById('rl-pair-overlay');
   if (existing) { existing.remove(); return; }
 
-  const prof = window.RL_STATE?.loadProfile() || {};
-  const qp   = new URLSearchParams({
-    mosque: prof.mosqueId     || '',
-    n:      prof.mosqueName   || '',
-    a:      prof.mosqueAddress || '',
-    z:      prof.zone         || 'WLY01',
-    t:      prof.theme        || 'rose',
-    s:      '1',
-  });
-  const adminUrl = `${window.location.origin}/ui_kits/mobile-admin/index.html?${qp}`;
-  const qrSrc    = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&color=010103&bgcolor=ffffff&data=${encodeURIComponent(adminUrl)}`;
+  const code = window.RL_STATE?.getMosqueCode?.() || '——————';
 
   const el = document.createElement('div');
   el.id = 'rl-pair-overlay';
-  el.style.cssText = [
-    'position:fixed', 'inset:0', 'z-index:2147483647',
-    'background:rgba(0,0,0,0.92)', 'display:flex',
-    'align-items:center', 'justify-content:center',
-    'font-family:"Outfit",system-ui,sans-serif', 'color:white',
-    'cursor:pointer',
-  ].join(';');
-
-  const pin = window.RL_STATE?.getSessionPin?.() || '——';
+  el.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;font-family:"Outfit",system-ui,sans-serif;color:white;cursor:pointer;';
 
   el.innerHTML = `
     <div onclick="event.stopPropagation()" style="
       background:rgba(12,6,22,0.99);border-radius:40px;
       border:1px solid rgba(255,255,255,0.12);
-      padding:52px 64px;display:flex;flex-direction:column;
+      padding:52px 72px;display:flex;flex-direction:column;
       align-items:center;gap:32px;text-align:center;
       box-shadow:0 40px 80px rgba(0,0,0,0.9);
-      animation:rl-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
-      min-width:560px;">
+      animation:rl-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;">
 
       <p style="margin:0;font-size:13px;font-weight:900;color:#fb7185;letter-spacing:0.4em;text-transform:uppercase">Sambung Telefon Admin</p>
 
-      <!-- PIN — primary method, always works -->
-      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;
-                  background:rgba(244,63,94,0.10);border:1px solid rgba(244,63,94,0.25);
-                  border-radius:28px;padding:28px 48px;">
-        <p style="margin:0;font-size:11px;font-weight:900;color:rgba(255,255,255,0.45);letter-spacing:0.35em;text-transform:uppercase">PIN Sambung</p>
-        <p style="margin:0;font-size:80px;font-weight:900;letter-spacing:0.3em;color:white;font-variant-numeric:tabular-nums;line-height:1">${pin}</p>
-        <p style="margin:0;font-size:14px;font-weight:700;color:rgba(255,255,255,0.50)">Admin → Setup → Masuk PIN → Sambung</p>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:16px;
+                  background:rgba(244,63,94,0.10);border:1px solid rgba(244,63,94,0.28);
+                  border-radius:32px;padding:36px 60px;">
+        <p style="margin:0;font-size:11px;font-weight:900;color:rgba(255,255,255,0.40);letter-spacing:0.4em;text-transform:uppercase">Kod Sambung</p>
+        <p style="margin:0;font-size:88px;font-weight:900;letter-spacing:0.25em;color:white;font-variant-numeric:tabular-nums;line-height:1">${code}</p>
+        <p style="margin:0;font-size:15px;font-weight:700;color:rgba(255,255,255,0.45);line-height:1.5">
+          Admin → tab <b style="color:white">Setup</b> → <b style="color:white">Masuk Kod</b> → taip kod ini → Sambung
+        </p>
       </div>
 
-      <p style="margin:0;font-size:12px;font-weight:700;color:rgba(255,255,255,0.30)">atau imbas QR</p>
-
-      <!-- QR — secondary method -->
-      <div style="background:white;padding:14px;border-radius:22px;box-shadow:0 12px 30px rgba(0,0,0,0.6)">
-        <img src="${qrSrc}" width="220" height="220" style="display:block;border-radius:10px" />
-      </div>
+      <p style="margin:0;font-size:13px;font-weight:700;color:rgba(255,255,255,0.30)">
+        Kod ini kekal sama walaupun TV restart
+      </p>
 
       <button onclick="document.getElementById('rl-pair-overlay').remove()" style="
-        font:inherit;cursor:pointer;
-        padding:12px 36px;border-radius:18px;
+        font:inherit;cursor:pointer;padding:13px 40px;border-radius:18px;
         background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);
         color:rgba(255,255,255,0.55);font-size:13px;font-weight:900;
         letter-spacing:0.2em;text-transform:uppercase">

@@ -227,10 +227,10 @@
            style="padding:14px 22px; background:rgba(244,63,94,0.10); border:1px solid rgba(244,63,94,0.30); border-radius:14px; color:#fb7185; cursor:pointer; font:inherit; font-size:11px; font-weight:900; letter-spacing:0.15em; text-transform:uppercase; display:inline-flex; align-items:center; gap:8px;">
           ⚡ Pasang Sebagai PWA
         </button>
-        <button id="qrBtn"
-           style="padding:14px 22px; background:rgba(192,132,252,0.10); border:1px solid rgba(192,132,252,0.30); border-radius:14px; color:#c084fc; cursor:pointer; font:inherit; font-size:11px; font-weight:900; letter-spacing:0.15em; text-transform:uppercase; display:inline-flex; align-items:center; gap:8px;">
-          🔮 Imbas QR Telefon
-        </button>
+        <a href="ui_kits/mobile-admin/index.html"
+           style="padding:14px 22px; background:rgba(192,132,252,0.10); border:1px solid rgba(192,132,252,0.30); border-radius:14px; color:#c084fc; text-decoration:none; font-size:11px; font-weight:900; letter-spacing:0.15em; text-transform:uppercase; display:inline-flex; align-items:center; gap:8px;">
+          🔢 Buka Admin
+        </a>
         <a href="DEPLOY.md"
            style="padding:14px 22px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.10); border-radius:14px; color:rgba(255,255,255,0.6); text-decoration:none; font-size:11px; font-weight:900; letter-spacing:0.15em; text-transform:uppercase; display:inline-flex; align-items:center; gap:8px;">
           📘 Panduan Deploy
@@ -362,59 +362,6 @@
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
 
-    // QR Code Modal Interaction
-    const qrBtn = document.getElementById('qrBtn');
-    const qrModal = document.getElementById('qrModal');
-    const modalQrImg = document.getElementById('modalQrImg');
-    const closeQrBtn = document.getElementById('closeQrBtn');
-
-    qrBtn.addEventListener('click', () => {
-      const prof = window.RL_STATE?.loadProfile() || {};
-      const qp = new URLSearchParams({
-        mosque: prof.mosqueId    || '',
-        n: prof.mosqueName       || '',
-        a: prof.mosqueAddress    || '',
-        z: prof.zone             || 'WLY01',
-        t: prof.theme            || 'rose',
-        s: prof.setupComplete ? '1' : '0',
-      });
-      const adminUrl = window.location.origin + '/ui_kits/mobile-admin/index.html?' + qp;
-      modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&color=010103&data=${encodeURIComponent(adminUrl)}`;
-      qrModal.style.display = 'flex';
-      setTimeout(() => {
-        qrModal.style.opacity = '1';
-      }, 10);
-    });
-
-    const closeModal = () => {
-      qrModal.style.opacity = '0';
-      setTimeout(() => {
-        qrModal.style.display = 'none';
-      }, 300);
-    };
-
-    closeQrBtn.addEventListener('click', closeModal);
-    qrModal.addEventListener('click', (e) => {
-      if (e.target === qrModal) closeModal();
-    });
   </script>
-
-  <!-- Elegant Glassmorphic QR Modal -->
-  <div id="qrModal" style="position:fixed; inset:0; background:rgba(5,3,9,0.85); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); z-index:99999; display:none; align-items:center; justify-content:center; padding:20px; transition:all 300ms ease; opacity:0;">
-    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:24px; padding:32px 24px; max-width:340px; width:100%; text-align:center; display:flex; flex-direction:column; align-items:center; gap:16px; box-shadow:0 25px 60px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.04);">
-      <h3 style="margin:0; font-size:12px; font-weight:900; color:#c084fc; letter-spacing:0.25em; text-transform:uppercase;">
-        Imbas QR Admin
-      </h3>
-      <div style="background:white; padding:10px; border-radius:18px; display:flex; align-items:center; justify-content:center; box-shadow:0 15px 30px rgba(0,0,0,0.5);">
-        <img id="modalQrImg" src="" width="140" height="140" alt="Admin QR Code" style="display:block; border-radius:8px;">
-      </div>
-      <p style="margin:0; font-size:11px; font-weight:500; color:rgba(255,255,255,0.6); line-height:1.45;">
-        Halakan kamera telefon anda ke kod di atas untuk mengawal TV masjid.
-      </p>
-      <button id="closeQrBtn" style="cursor:pointer; font:inherit; font-size:10px; font-weight:900; letter-spacing:0.20em; text-transform:uppercase; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:white; padding:10px 20px; border-radius:14px; margin-top:8px; width:100%; transition:all 0.2s ease;">
-        Tutup
-      </button>
-    </div>
-  </div>
 </body>
 </html>

@@ -186,37 +186,26 @@ import { createClient } from '@supabase/supabase-js';
     });
   }
 
-  // ── PIN discovery ──────────────────────────────────────────────────────────
-  // TV generates a fresh 4-digit PIN each session, joins a shared 'rl-discover'
-  // channel, and responds to 'find:<pin>' requests with its full profile.
-  // Admin sends 'find:<pin>' and waits for 'found:<pin>' with the profile.
-  // No table, no QR, no camera — works on every device instantly.
-  let discoverCh = null;
-  const SESSION_PIN_KEY = 'rl-session-pin';
-
-  function getSessionPin() {
-    let pin = sessionStorage.getItem(SESSION_PIN_KEY);
-    if (!pin) {
-      pin = String(Math.floor(1000 + Math.random() * 9000));
-      sessionStorage.setItem(SESSION_PIN_KEY, pin);
-    }
-    return pin;
+  // ── Code-based discovery ───────────────────────────────────────────────────
+  // Static 6-char code derived from the permanent mosqueId (never changes,
+  // even after TV restarts). Admin types it once → paired forever.
+  // Both devices need Supabase configured and internet at time of first pairing.
+  function getMosqueCode() {
+    return (loadProfile().mosqueId || '').replace(/-/g, '').slice(0, 6).toUpperCase();
   }
 
+  let discoverCh = null;
   let _discoverCleanupTimer = null;
+
   function setupDiscovery() {
-    if (!supabase) return;
-    if (discoverCh) return; // already open
+    if (!supabase || discoverCh) return;
     discoverCh = supabase
       .channel('rl-discover', { config: { broadcast: { self: false } } })
       .on('broadcast', { event: 'find' }, ({ payload }) => {
-        if (payload?.pin !== getSessionPin()) return;
-        const stripped = stripForBroadcast(loadProfile());
-        // Include mosqueId in response even though it's not in SKIP_BROADCAST
-        stripped.mosqueId = loadProfile().mosqueId;
+        if (payload?.code !== getMosqueCode()) return;
         discoverCh.send({
           type: 'broadcast', event: 'found',
-          payload: { pin: payload.pin, profile: loadProfile() },
+          payload: { code: payload.code, profile: loadProfile() },
         }).catch(() => {});
       })
       .subscribe();
@@ -228,26 +217,26 @@ import { createClient } from '@supabase/supabase-js';
     discoverCh = null;
   }
 
-  async function findMosqueByPin(pin) {
-    if (!supabase || !pin) return null;
+  // Admin calls this with the code shown on the TV screen.
+  // TV (online) responds within ~1s; discovery channel auto-closes after success.
+  async function findMosqueByCode(code) {
+    if (!supabase || !code) return null;
     if (!discoverCh) setupDiscovery();
     return new Promise(resolve => {
       const done = (result) => {
         clearTimeout(timeout);
-        // Close discovery channel 3s after pairing — no longer needed
         clearTimeout(_discoverCleanupTimer);
         _discoverCleanupTimer = setTimeout(closeDiscovery, 3000);
         resolve(result);
       };
       const timeout = setTimeout(() => done(null), 8000);
-
       const onFound = ({ payload }) => {
-        if (payload?.pin !== pin || !payload?.profile) return;
+        if (payload?.code !== code || !payload?.profile) return;
         discoverCh.off('broadcast', { event: 'found' }, onFound);
         done(payload.profile);
       };
       discoverCh.on('broadcast', { event: 'found' }, onFound);
-      discoverCh.send({ type: 'broadcast', event: 'find', payload: { pin } })
+      discoverCh.send({ type: 'broadcast', event: 'find', payload: { code } })
         .catch(() => done(null));
     });
   }
@@ -256,7 +245,7 @@ import { createClient } from '@supabase/supabase-js';
   const initProfile = loadProfile();
   setTimeout(() => {
     setupChannel(initProfile.mosqueId);
-    setupDiscovery(); // always join discovery so TV can respond to PIN requests
+    setupDiscovery(); // TV listens for code lookups
   }, 50);
 
   // Legacy logo migration
@@ -273,8 +262,8 @@ import { createClient } from '@supabase/supabase-js';
     useProfile,
     fetchProfileFromCloud,
     setupChannel,
-    findMosqueByPin,
-    getSessionPin,
+    findMosqueByCode,
+    getMosqueCode,
     isCloudSynced: !!supabase,
     KEY,
   };
