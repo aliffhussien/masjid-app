@@ -1,8 +1,18 @@
 /* global React */
-// WizardSteps.jsx — the 5-step onboarding flow.
-// Steps:  welcome → searching → results → upload-logo → finish
+// WizardSteps.jsx — 4-step onboarding: welcome → search mosque → logo → finish
+import _logoMark from '../../assets/logo-mark.png';
 
 const { useState, useRef, useEffect } = React;
+
+// Map Malaysian state names → sensible default JAKIM zone
+const STATE_ZONE = {
+  'Kuala Lumpur': 'WLY01', 'Putrajaya': 'WLY01', 'Labuan': 'WLY02',
+  'Johor': 'JHR02', 'Kedah': 'KDH01', 'Kelantan': 'KLT01',
+  'Melaka': 'MLK01', 'Negeri Sembilan': 'NGS01', 'Pahang': 'PHG06',
+  'Perak': 'PRK07', 'Perlis': 'PLS01', 'Pulau Pinang': 'PNG01',
+  'Penang': 'PNG01', 'Sabah': 'SBH01', 'Sarawak': 'SWK05',
+  'Selangor': 'SGR05', 'Terengganu': 'TRG03',
+};
 
 // Shared UI primitives
 function Spinner({ size = 32 }) {
@@ -34,7 +44,7 @@ function ProgressDots({ step, total = 5 }) {
 function Welcome({ onStart, onManual }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 360, animation: 'rl-fadeUp 600ms cubic-bezier(0.34,1.56,0.64,1)' }}>
-      <img src="../../assets/logo-mark.png" width="96" height="96" alt="" style={{ marginBottom: 32, filter: 'drop-shadow(0 12px 32px var(--rl-accent-glow, rgba(244,63,94,0.35)))' }} />
+      <img src={_logoMark} width="96" height="96" alt="" style={{ marginBottom: 32, filter: 'drop-shadow(0 12px 32px var(--rl-accent-glow, rgba(244,63,94,0.35)))' }} />
       <h1 style={{ margin: 0, fontSize: 32, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.04em', fontStyle: 'italic', background: 'linear-gradient(90deg,#fff, var(--rl-accent-soft, #fda4af))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
         Selamat Datang
       </h1>
@@ -70,37 +80,7 @@ function Welcome({ onStart, onManual }) {
   );
 }
 
-// — STEP 2: SEARCHING —
-function Searching({ message = 'Mendapatkan lokasi anda...' }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28, animation: 'rl-fadeUp 600ms cubic-bezier(0.34,1.56,0.64,1)' }}>
-      <div style={{
-        position: 'relative', width: 110, height: 110,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'rgba(244,63,94,0.10)', borderRadius: '50%',
-        border: '2px solid rgba(244,63,94,0.25)',
-      }}>
-        {/* Pulsing rings */}
-        {[0, 0.5, 1].map(d => (
-          <div key={d} style={{
-            position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid #f43f5e',
-            animation: `rl-ping 2s cubic-bezier(0,0,0.2,1) ${d}s infinite`,
-          }} />
-        ))}
-        <div style={{ color: '#fb7185' }}><Spinner size={36} /></div>
-      </div>
-      <div style={{ textAlign: 'center' }}>
-        <p style={{ margin: 0, fontSize: 16, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.015em' }}>{message}</p>
-        <p style={{ margin: '6px 0 0', fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.30)', letterSpacing: '0.3em', textTransform: 'uppercase' }}>Sila tunggu sebentar</p>
-      </div>
-      <style>{`@keyframes rl-ping { 75%, 100% { transform: scale(1.8); opacity: 0; } }`}</style>
-    </div>
-  );
-}
-
-// — STEP 3: MANUAL ENTRY (replaces fake GPS results) —
-// Zone list comes from shared/zones.js → window.RL_ZONES (loaded before this file)
-
+// — STEP 2: MOSQUE SEARCH — live Nominatim + GPS, with manual fallback —
 const INPUT_STYLE = {
   width: '100%', padding: '13px 16px', borderRadius: 14,
   background: 'rgba(255,255,255,0.05)',
@@ -110,78 +90,192 @@ const INPUT_STYLE = {
   WebkitTapHighlightColor: 'transparent',
 };
 
-function ManualEntry({ onSave }) {
-  const [name,    setName]    = useState('');
-  const [address, setAddress] = useState('');
-  const [zone,    setZone]    = useState('WLY01');
-  const [err,     setErr]     = useState('');
+function MosqueSearch({ onSave }) {
+  const [query,      setQuery]      = useState('');
+  const [results,    setResults]    = useState([]);
+  const [loading,    setLoading]    = useState(false);
+  const [status,     setStatus]     = useState('');   // info / error message
+  const [showManual, setShowManual] = useState(false);
+  const [manName,    setManName]    = useState('');
+  const [manAddr,    setManAddr]    = useState('');
+  const [zone,       setZone]       = useState('WLY01');
+  const [manErr,     setManErr]     = useState('');
+  const debounce = useRef(null);
 
-  const submit = () => {
-    if (!name.trim()) { setErr('Sila masukkan nama masjid.'); return; }
-    onSave({ name: name.trim().toUpperCase(), address: address.trim(), zone });
+  // ── text search ──────────────────────────────────────────────
+  const onQueryChange = (val) => {
+    setQuery(val);
+    clearTimeout(debounce.current);
+    if (!val.trim() || val.length < 2) { setResults([]); return; }
+    debounce.current = setTimeout(() => doTextSearch(val), 500);
   };
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: 360, gap: 12, animation: 'rl-fadeUp 600ms cubic-bezier(0.34,1.56,0.64,1)' }}>
-      <div style={{ textAlign: 'center', marginBottom: 4 }}>
-        <p style={{ margin: 0, fontSize: 10, fontWeight: 900, color: '#fb7185', letterSpacing: '0.35em', textTransform: 'uppercase' }}>Maklumat Masjid</p>
-        <h2 style={{ margin: '6px 0 0', fontSize: 22, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.025em' }}>Tetapkan Masjid Anda</h2>
-      </div>
+  const doTextSearch = async (q) => {
+    setLoading(true); setStatus('');
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q + ' masjid')}&countrycodes=my&format=json&limit=8&addressdetails=1`;
+      const res  = await fetch(url, { headers: { 'Accept-Language': 'ms,en' } });
+      const data = await res.json();
+      const hits = data.filter(r =>
+        (r.display_name || '').toLowerCase().includes('masjid') ||
+        (r.display_name || '').toLowerCase().includes('surau')  ||
+        (r.name         || '').toLowerCase().includes('masjid') ||
+        r.type === 'place_of_worship'
+      );
+      setResults(hits.slice(0, 6));
+      if (!hits.length) setStatus('Tiada hasil — cuba kata kunci lain atau guna GPS.');
+    } catch { setStatus('Gagal sambung. Semak internet anda.'); }
+    setLoading(false);
+  };
 
-      <div>
-        <label style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.3em', color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
-          Nama Masjid *
-        </label>
-        <input
-          value={name}
-          onChange={e => { setName(e.target.value); setErr(''); }}
-          placeholder="cth: MASJID AL-FALAH"
-          style={INPUT_STYLE}
-        />
-      </div>
+  // ── GPS search ───────────────────────────────────────────────
+  const doGPS = () => {
+    if (!navigator.geolocation) { setStatus('GPS tidak disokong oleh peranti ini.'); return; }
+    setLoading(true); setResults([]); setStatus('Mendapatkan lokasi GPS…');
+    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+      const { latitude: lat, longitude: lon } = coords;
+      try {
+        // Nearby mosques via Overpass
+        const oq  = `[out:json][timeout:12];(node["amenity"="place_of_worship"]["religion"="muslim"](around:4000,${lat},${lon});way["amenity"="place_of_worship"]["religion"="muslim"](around:4000,${lat},${lon}););out center 10;`;
+        const [oRes, rRes] = await Promise.all([
+          fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(oq)}`),
+          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=8`),
+        ]);
+        const [oData, rData] = await Promise.all([oRes.json(), rRes.json()]);
+        const state    = rData?.address?.state || '';
+        const defZone  = STATE_ZONE[state] || 'WLY01';
+        setZone(defZone);
+        const hits = (oData.elements || [])
+          .filter(e => e.tags?.name)
+          .map(e => ({
+            name:         e.tags.name,
+            display_name: [e.tags['addr:street'], e.tags['addr:city'] || e.tags['addr:town'], state].filter(Boolean).join(', '),
+            _zone:        defZone,
+          }));
+        setResults(hits.slice(0, 8));
+        setStatus(hits.length ? `${hits.length} masjid dijumpai berdekatan` : 'Tiada masjid berdekatan — cuba cari nama atau masuk manual.');
+      } catch { setStatus('Gagal mendapat data. Cuba cari nama masjid di atas.'); }
+      setLoading(false);
+    }, () => {
+      setLoading(false);
+      setStatus('GPS ditolak. Cari menggunakan nama masjid di atas.');
+    }, { timeout: 10000 });
+  };
 
-      <div>
-        <label style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.3em', color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
-          Alamat
-        </label>
-        <input
-          value={address}
-          onChange={e => setAddress(e.target.value)}
-          placeholder="cth: Jalan Masjid, Kuala Lumpur"
-          style={INPUT_STYLE}
-        />
-      </div>
+  const pickResult = (r) => {
+    const addr = (r.display_name || '').split(',').slice(0, 3).join(', ').trim();
+    onSave({
+      name:    (r.name || r.display_name || '').toUpperCase().split(',')[0].trim() || 'MASJID',
+      address: addr,
+      zone:    r._zone || zone,
+    });
+  };
 
-      <div>
-        <label style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.3em', color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
-          Zon Waktu Solat JAKIM
-        </label>
-        <select
-          value={zone}
-          onChange={e => setZone(e.target.value)}
-          style={{ ...INPUT_STYLE, cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none' }}
-        >
+  const submitManual = () => {
+    if (!manName.trim()) { setManErr('Sila masukkan nama masjid.'); return; }
+    onSave({ name: manName.trim().toUpperCase(), address: manAddr.trim(), zone });
+  };
+
+  if (showManual) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: 360, gap: 12, animation: 'rl-fadeUp 500ms ease' }}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ margin: 0, fontSize: 10, fontWeight: 900, color: '#fb7185', letterSpacing: '0.35em', textTransform: 'uppercase' }}>Masuk Manual</p>
+          <h2 style={{ margin: '6px 0 0', fontSize: 22, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.025em' }}>Maklumat Masjid</h2>
+        </div>
+        <input value={manName} onChange={e => { setManName(e.target.value); setManErr(''); }} placeholder="Nama Masjid *" style={INPUT_STYLE} />
+        <input value={manAddr} onChange={e => setManAddr(e.target.value)} placeholder="Alamat (pilihan)" style={INPUT_STYLE} />
+        <select value={zone} onChange={e => setZone(e.target.value)} style={{ ...INPUT_STYLE, cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none' }}>
           {(window.RL_ZONES || []).map(z => (
-            <option key={z.code} value={z.code} style={{ background: '#1c0e21', color: 'white' }}>
-              {z.code} · {z.label}
-            </option>
+            <option key={z.code} value={z.code} style={{ background: '#1c0e21' }}>{z.code} · {z.label}</option>
           ))}
         </select>
+        {manErr && <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: '#fb7185' }}>{manErr}</p>}
+        <button onClick={submitManual} style={{ font: 'inherit', cursor: 'pointer', padding: '16px 20px', borderRadius: 18, background: '#e11d48', color: 'white', border: 'none', fontSize: 12, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', boxShadow: '0 12px 30px rgba(76,5,25,0.5)' }}>
+          Simpan &amp; Teruskan
+        </button>
+        <button onClick={() => setShowManual(false)} style={{ font: 'inherit', cursor: 'pointer', background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+          ← Kembali Cari
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: 360, gap: 12, animation: 'rl-fadeUp 500ms ease' }}>
+      <div style={{ textAlign: 'center' }}>
+        <p style={{ margin: 0, fontSize: 10, fontWeight: 900, color: '#fb7185', letterSpacing: '0.35em', textTransform: 'uppercase' }}>Cari Masjid</p>
+        <h2 style={{ margin: '6px 0 0', fontSize: 22, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.025em' }}>Pilih Masjid Anda</h2>
       </div>
 
-      {err && <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: '#fb7185' }}>{err}</p>}
+      {/* Search bar + GPS */}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ flex: 1, position: 'relative' }}>
+          <input
+            value={query}
+            onChange={e => onQueryChange(e.target.value)}
+            placeholder="Nama masjid atau kawasan..."
+            style={{ ...INPUT_STYLE, paddingRight: loading ? 40 : 16 }}
+            autoComplete="off"
+          />
+          {loading && (
+            <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#fb7185' }}>
+              <Spinner size={16} />
+            </span>
+          )}
+        </div>
+        <button onClick={doGPS} title="Cari menggunakan GPS" style={{
+          font: 'inherit', cursor: 'pointer', flexShrink: 0,
+          width: 48, borderRadius: 14, border: '1px solid rgba(244,63,94,0.30)',
+          background: 'rgba(244,63,94,0.10)', color: '#fb7185', fontSize: 20,
+        }}>📍</button>
+      </div>
 
-      <button onClick={submit} style={{
-        font: 'inherit', cursor: 'pointer', marginTop: 4,
-        padding: '16px 20px', borderRadius: 18,
-        background: '#e11d48', color: 'white', border: 'none',
-        fontSize: 12, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
-        boxShadow: '0 12px 30px rgba(76,5,25,0.5)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+      {/* Status message */}
+      {status && !results.length && (
+        <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.40)', textAlign: 'center' }}>{status}</p>
+      )}
+      {status && results.length > 0 && (
+        <p style={{ margin: 0, fontSize: 9, fontWeight: 700, color: '#34d399', textAlign: 'center', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{status}</p>
+      )}
+
+      {/* Results list */}
+      {results.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 300, overflowY: 'auto' }}>
+          {results.map((r, i) => {
+            const label = r.name || (r.display_name || '').split(',')[0];
+            const sub   = (r.display_name || '').split(',').slice(1, 3).join(',').trim();
+            return (
+              <button key={i} onClick={() => pickResult(r)} style={{
+                font: 'inherit', cursor: 'pointer', textAlign: 'left',
+                padding: '12px 14px', borderRadius: 14,
+                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)',
+                display: 'flex', alignItems: 'center', gap: 12,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(244,63,94,0.12)'; e.currentTarget.style.borderColor = 'rgba(244,63,94,0.30)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
+              >
+                <span style={{ fontSize: 18, flexShrink: 0 }}>🕌</span>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</p>
+                  {sub && <p style={{ margin: '2px 0 0', fontSize: 9, fontWeight: 600, color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</p>}
+                </div>
+                <svg width="14" height="14" fill="none" stroke="#fb7185" viewBox="0 0 24 24" style={{ flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"/></svg>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Manual fallback */}
+      <button onClick={() => setShowManual(true)} style={{
+        font: 'inherit', cursor: 'pointer', background: 'none', border: 'none', marginTop: 4,
+        color: 'rgba(255,255,255,0.30)', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase',
       }}>
-        Simpan &amp; Teruskan
-        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"/></svg>
+        Tak jumpa? Masuk secara manual →
       </button>
+      <style>{`@keyframes rl-fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }`}</style>
     </div>
   );
 }
@@ -241,7 +335,7 @@ function UploadLogo({ chosenMosque, logoUrl, setLogoUrl, onNext, onSkip }) {
 
       {/* Big circular preview tile */}
       <img
-        src={logoUrl || '../../assets/logo-mark.png'}
+        src={logoUrl || _logoMark}
         width="160" height="160" alt=""
         onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = '#fb7185'; }}
         onDragLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(244,63,94,0.30)'; }}
@@ -448,4 +542,4 @@ function Finish({ chosenMosque, logoUrl }) {
   );
 }
 
-window.Wizard = { Welcome, Searching, ManualEntry, UploadLogo, Finish, ProgressDots };
+window.Wizard = { Welcome, MosqueSearch, UploadLogo, Finish, ProgressDots };

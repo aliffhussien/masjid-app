@@ -1,4 +1,5 @@
 /* global React */
+import _logoMark from '../../assets/logo-mark.png';
 // Splash.jsx — modern intro animation that plays when the wizard first loads.
 // Aubergine gradient backdrop, particle field, logo dramatically fades + scales in,
 // wordmark types in, tagline reveals, then exits via fade-up. Hands control back via onDone().
@@ -103,7 +104,7 @@ function Splash({ onDone }) {
         filter: 'drop-shadow(0 30px 60px rgba(0,0,0,0.6)) drop-shadow(0 0 80px rgba(244,63,94,0.35))',
         overflow: 'hidden', borderRadius: 44,
       }}>
-        <img src="../../assets/logo-mark.png" width="180" height="180" alt="Rose Ly"
+        <img src={_logoMark} width="180" height="180" alt="Rose Ly"
              style={{ display: 'block' }} />
         {/* Glint sweep — clipped to the logo's rounded square */}
         <div style={{

@@ -9,7 +9,7 @@ const { useState } = React;
 
 function SetupApp() {
   const [splashed, setSplashed] = useState(false);
-  const [step, setStep] = useState(0);  // 0 welcome 1 searching 2 results 3 upload 4 finish
+  const [step, setStep] = useState(0);  // 0 welcome 1 search 2 logo 3 finish
   const [mosque, setMosque] = useState(null);
   const [logoUrl, setLogoUrl] = useState(() => {
     try { return window.RL_STATE?.loadProfile().logoUrl || null; } catch { return null; }
@@ -20,11 +20,7 @@ function SetupApp() {
     try { window.RL_STATE?.saveProfile({ logoUrl: url }); } catch {}
   };
 
-  // Brief loading animation before showing the form
-  const startSearch = () => {
-    setStep(1);
-    setTimeout(() => setStep(2), 800);
-  };
+  const goSearch = () => setStep(1);
   const saveMosque = (m) => {
     setMosque(m);
     try {
@@ -34,30 +30,33 @@ function SetupApp() {
         zone:          m.zone,
       });
     } catch {}
-    setStep(3);
+    setStep(2);
   };
 
   return (
     <>
-      {/* Floating hub link — always available */}
-      <a href="../../index.html" style={{
-        position: 'fixed', top: 16, left: 16, zIndex: 10000,
-        padding: '6px 12px', borderRadius: 999,
-        background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)',
-        color: 'rgba(255,255,255,0.6)', textDecoration: 'none',
-        border: '1px solid rgba(255,255,255,0.10)',
-        fontSize: 9, fontWeight: 900, letterSpacing: '0.25em', textTransform: 'uppercase',
-        display: 'flex', alignItems: 'center', gap: 6,
-      }}>← Hub</a>
-
       {!splashed && <window.Splash onDone={() => setSplashed(true)} />}
       {splashed && <>
-        <window.Wizard.ProgressDots step={step} total={5} />
-        {step === 0 && <window.Wizard.Welcome      onStart={startSearch} onManual={() => setStep(2)} />}
-        {step === 1 && <window.Wizard.Searching     message="Menyediakan borang setup..." />}
-        {step === 2 && <window.Wizard.ManualEntry   onSave={saveMosque} />}
-        {step === 3 && <window.Wizard.UploadLogo    chosenMosque={mosque} logoUrl={logoUrl} setLogoUrl={saveLogo} onNext={() => setStep(4)} onSkip={() => setStep(4)} />}
-        {step === 4 && <window.Wizard.Finish        chosenMosque={mosque} logoUrl={logoUrl} />}
+        <window.Wizard.ProgressDots step={step} total={4} />
+        {step === 0 && <window.Wizard.Welcome      onStart={goSearch} onManual={goSearch} />}
+        {step === 1 && <window.Wizard.MosqueSearch  onSave={saveMosque} />}
+        {step === 2 && <window.Wizard.UploadLogo    chosenMosque={mosque} logoUrl={logoUrl} setLogoUrl={saveLogo} onNext={() => setStep(3)} onSkip={() => setStep(3)} />}
+        {step === 3 && <window.Wizard.Finish        chosenMosque={mosque} logoUrl={logoUrl} />}
+        {/* Hub icon button — top-right, small, only visible after welcome */}
+        {step > 0 && step < 3 && (
+          <a href="../../index.html" title="Kembali ke Hub" style={{
+            position: 'fixed', top: 14, right: 14, zIndex: 10000,
+            width: 40, height: 40, borderRadius: 14,
+            background: 'rgba(0,0,0,0.50)', backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'rgba(255,255,255,0.45)', textDecoration: 'none',
+          }}>
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+          </a>
+        )}
       </>}
     </>
   );

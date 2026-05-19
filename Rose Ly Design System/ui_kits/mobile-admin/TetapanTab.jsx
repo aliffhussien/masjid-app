@@ -1,5 +1,6 @@
 /* global React */
 // TetapanTab.jsx — settings: mosque info (with logo upload), prayer zone, cloud sync, theme picker.
+import _logoMark from '../../assets/logo-mark.png';
 
 const { useState, useRef } = React;
 
@@ -110,7 +111,7 @@ function LogoUploader({ logoUrl, setLogoUrl }) {
       <div style={{ marginTop: 8, display: 'flex', gap: 14, alignItems: 'stretch' }}>
         {/* Preview */}
         <img
-          src={logoUrl || '../../assets/logo-mark.png'}
+          src={logoUrl || _logoMark}
           width="88" height="88" alt=""
           style={{
             width: 88, height: 88, borderRadius: 22,

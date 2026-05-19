@@ -1,5 +1,6 @@
 /* global React */
 // TVHeader.jsx — top bar: logo + identity, hadith rotation, weather widget, Hijri/Gregorian date, clock.
+import _logoMark from '../../assets/logo-mark.png';
 
 const { useState, useEffect } = React;
 
@@ -122,7 +123,7 @@ function TVHeader({ time, mosqueName, mosqueAddress, logoUrl }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 1, position: 'relative', width: 360, minWidth: 0 }}>
         <div style={{ width: 4, height: 48, borderRadius: 999, background: '#e11d48', boxShadow: '0 0 12px rgba(225,29,72,0.9)' }} />
         <img
-          src={logo || '../../assets/logo-mark.png'}
+          src={logo || _logoMark}
           width="64" height="64" alt="Masjid Logo"
           onClick={() => window.location.href = '../../index.html'}
           onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
