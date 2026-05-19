@@ -343,11 +343,11 @@ function TetapanTab({ logoUrl, setLogoUrl, mosqueName, mosqueAddress, zone }) {
               cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none',
             }}
           >
-            {(window.RL_ZONES || []).map(z => (
+            {Array.isArray(window.RL_ZONES) ? window.RL_ZONES.map(z => (
               <option key={z.code} value={z.code} style={{ background: '#1c0e21', color: 'white' }}>
                 {z.code} · {z.label}
               </option>
-            ))}
+            )) : <option value="WLY01">WLY01 · Kuala Lumpur / Putrajaya</option>}
           </select>
         </label>
         <SyncWaktu zone={profile.zone || 'WLY01'} />

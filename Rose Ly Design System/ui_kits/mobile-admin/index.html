@@ -128,10 +128,10 @@
       transform: scale(0.96);
       filter: brightness(0.92);
     }
-    /* Ensure touch targets are at least 36px tall on mobile */
-    @media (pointer: coarse) {
-      button { min-height: 36px; }
-    }
+    /* Ensure touch targets meet Apple/Google 44px minimum on all phones */
+    button, [role="button"] { min-height: 44px; }
+    /* Allow small decorative buttons to opt out */
+    button.rl-icon-btn { min-height: unset; }
     /* Smooth scrolling */
     .app-area, main { scroll-behavior: smooth; }
     /* Better focus ring */

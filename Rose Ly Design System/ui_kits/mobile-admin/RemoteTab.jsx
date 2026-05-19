@@ -148,8 +148,8 @@ function RemoteTab() {
 
       <Section title="Kawalan Slaid">
         <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
-          <button onClick={handlePrevSlide} style={{ font:'inherit', cursor: 'pointer', width: 56, height: 56, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.10)', borderRadius: 16, color:'rgba(255,255,255,0.6)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"/></svg>
+          <button onClick={handlePrevSlide} style={{ font:'inherit', cursor: 'pointer', width: 64, height: 64, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.10)', borderRadius: 18, color:'rgba(255,255,255,0.7)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <svg width="26" height="26" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"/></svg>
           </button>
 
           <button onClick={() => setPaused(p => !p)} style={{
@@ -165,13 +165,13 @@ function RemoteTab() {
             {paused
               ? <svg width="30" height="30" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
               : <svg width="30" height="30" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>}
-            <span style={{ fontSize: 8, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <span style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               {paused ? 'MAIN' : 'JEDA'}
             </span>
           </button>
 
-          <button onClick={handleNextSlide} style={{ font:'inherit', cursor: 'pointer', width: 56, height: 56, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.10)', borderRadius: 16, color:'rgba(255,255,255,0.6)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"/></svg>
+          <button onClick={handleNextSlide} style={{ font:'inherit', cursor: 'pointer', width: 64, height: 64, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.10)', borderRadius: 18, color:'rgba(255,255,255,0.7)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <svg width="26" height="26" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"/></svg>
           </button>
         </div>
 
@@ -218,9 +218,9 @@ function RemoteTab() {
                   setDur(row.k, unit === 'm' ? v * 60 : v);
                 }}
                 style={{
-                  font: 'inherit', width: 64, padding: '8px 10px', borderRadius: 10,
-                  background: 'rgba(0,0,0,0.50)', border: '1px solid rgba(255,255,255,0.08)',
-                  color: 'white', fontSize: 13, fontWeight: 900, textAlign: 'center', outline: 'none',
+                  font: 'inherit', width: 72, padding: '10px 10px', borderRadius: 12,
+                  background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
+                  color: 'white', fontSize: 15, fontWeight: 900, textAlign: 'center', outline: 'none',
                 }} />
               <button onClick={() => setProfile({ [unitKey]: unit === 'm' ? 's' : 'm' })}
                 style={{

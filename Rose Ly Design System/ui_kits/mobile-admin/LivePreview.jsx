@@ -13,7 +13,7 @@ function LivePreview() {
   useEffect(() => {
     const update = () => {
       const w = wrapRef.current?.offsetWidth;
-      if (w && w > 0) setScale(w / 1920);
+      if (w && w > 0) setScale(+(w / 1920).toFixed(4));
     };
     update();
     let ro;
@@ -35,13 +35,16 @@ function LivePreview() {
       boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
     }}>
       {/* TV display in preview mode: full layout, no WebGL, no canvas */}
+      {/* zoom gives device-pixel-ratio-aware scaling → crisp text vs transform:scale blurriness */}
       <iframe
         src="../tv-display/index.html?preview=1"
         title="Paparan TV"
         loading="lazy"
         style={{
           width: 1920, height: 1080, border: 0,
-          transformOrigin: '0 0', transform: `scale(${scale})`,
+          transformOrigin: '0 0',
+          transform: `scale(${scale})`,
+          imageRendering: 'crisp-edges',
           pointerEvents: 'none',
           background: '#010103',
         }}

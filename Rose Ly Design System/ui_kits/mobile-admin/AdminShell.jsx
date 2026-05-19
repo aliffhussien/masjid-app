@@ -184,8 +184,8 @@ function PinGate({ pin, onSuccess }) {
           font: 'inherit', cursor: 'pointer',
           height: 64, borderRadius: 32,
           background: 'none', border: 'none',
-          color: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 900,
-          textTransform: 'uppercase', letterSpacing: '0.15em',
+          color: 'rgba(255,255,255,0.5)', fontSize: 13, fontWeight: 900,
+          textTransform: 'uppercase', letterSpacing: '0.1em',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           outline: 'none', WebkitTapHighlightColor: 'transparent',
         }}>Padam</button>
@@ -285,8 +285,8 @@ function PwaInstallCard({ installPrompt, onDismiss, mosqueName }) {
         <button onClick={onDismiss} style={{
           font: 'inherit', cursor: 'pointer', flexShrink: 0,
           background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 10, width: 32, height: 32,
-          color: 'rgba(255,255,255,0.45)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          borderRadius: 12, width: 44, height: 44,
+          color: 'rgba(255,255,255,0.55)', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>✕</button>
       </div>
 
@@ -441,7 +441,7 @@ function AdminShell() {
       display: 'flex', flexDirection: 'column',
     }}>
       {/* Ambient glow blobs */}
-      {window.Onboarding && <window.Onboarding />}
+      {typeof window.Onboarding === 'function' && <window.Onboarding />}
       <div style={{ position: 'absolute', top: -180, right: -120, width: 380, height: 380, background: 'var(--rl-accent-dark, #e11d48)', borderRadius: '50%', filter: 'blur(180px)', opacity: 0.18, pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', bottom: -180, left: -120, width: 380, height: 380, background: '#4a2349', borderRadius: '50%', filter: 'blur(180px)', opacity: 0.35, pointerEvents: 'none' }} />
 

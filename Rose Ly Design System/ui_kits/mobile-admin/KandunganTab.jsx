@@ -143,7 +143,7 @@ function SlidePreview({ slide }) {
           ) : (
             <div style={{ color: 'rgba(255,255,255,0.30)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
               <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-              <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Belum ada gambar</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)' }}>Belum ada gambar</span>
             </div>
           )
         ) : isDonation ? (
@@ -191,7 +191,7 @@ function SlidePreview({ slide }) {
                 {slide.title || '(Tanpa Tajuk)'}
               </div>
               {slide.content && (
-                <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.65)', fontWeight: 700, marginTop: 4, lineHeight: 1.3, maxHeight: 30, overflow: 'hidden' }}>
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.65)', fontWeight: 700, marginTop: 4, lineHeight: 1.3, maxHeight: 30, overflow: 'hidden' }}>
                   {slide.content}
                 </div>
               )}
@@ -204,7 +204,7 @@ function SlidePreview({ slide }) {
         position: 'absolute', top: 6, left: 6,
         padding: '2px 7px', borderRadius: 999,
         background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
-        fontSize: 6, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
+        fontSize: 9, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase',
         color: isPoster ? '#c084fc' : isDonation ? '#34d399' : '#fda4af',
       }}>{isPoster ? 'Mod Poster' : isDonation ? 'Mod Infaq' : 'Mod Teks'}</div>
     </div>
@@ -556,8 +556,8 @@ function SlideRow({ s, index, onEdit, onDelete, onReorder, selected, onToggleSel
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 8, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em', padding: '2px 7px', borderRadius: 999, background: labelBg, color: labelColor, border: '1px solid', borderColor: labelBd }}>{s.label}</span>
-            <span style={{ fontSize: 8, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em', padding: '2px 7px', borderRadius: 999, background: status.bg, color: status.color, border: '1px solid', borderColor: status.bd }}>{status.label}</span>
+            <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '3px 8px', borderRadius: 999, background: labelBg, color: labelColor, border: '1px solid', borderColor: labelBd }}>{s.label}</span>
+            <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '3px 8px', borderRadius: 999, background: status.bg, color: status.color, border: '1px solid', borderColor: status.bd }}>{status.label}</span>
           </div>
           <div style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.015em', color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title || (isPoster ? 'Poster' : '(tanpa tajuk)')}</div>
           {s.updatedAt && Date.now() - s.updatedAt < 60000 && (
@@ -566,7 +566,7 @@ function SlideRow({ s, index, onEdit, onDelete, onReorder, selected, onToggleSel
             </span>
           )}
           {(() => {
-            const stats = (window.RL_STATE?.loadProfile() || {}).slideStats || {};
+            const stats = (window.RL_STATE?.loadProfile?.() || {}).slideStats || {};
             const count = stats[s.id] || 0;
             return count > 0 ? (
               <div style={{ fontSize: 9, color: 'rgba(253,164,175,0.7)', fontWeight: 700, marginTop: 2, letterSpacing: '0.1em' }}>
@@ -852,8 +852,9 @@ function btnSm(bg = 'rgba(255,255,255,0.08)', color = 'white') {
 function KandunganTab() {
   const [profile, setProfile] = window.RL_STATE.useProfile();
   const slides = profile.slides || DEFAULT_SLIDES;
+  const mosqueName = profile.mosqueName || 'Masjid';
   const notices = profile.notices || [
-    'Selamat Datang ke Masjid Al-Falah.',
+    `Selamat Datang ke ${mosqueName}.`,
     'Sila pastikan telefon bimbit anda diletakkan dalam mod senyap.',
   ];
 
