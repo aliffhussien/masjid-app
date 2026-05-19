@@ -2,7 +2,69 @@
 // TVHeader.jsx — top bar: logo + identity, hadith rotation, weather widget, Hijri/Gregorian date, clock.
 import _logoMark from '../../assets/logo-mark.png';
 
-const { useState, useEffect, useCallback } = React;
+const { useState, useEffect } = React;
+
+// Pairing overlay — appended directly to document.body so it escapes any
+// CSS transform/filter on parent elements (which would break position:fixed).
+function showPairingOverlay() {
+  const existing = document.getElementById('rl-pair-overlay');
+  if (existing) { existing.remove(); return; }
+
+  const prof = window.RL_STATE?.loadProfile() || {};
+  const qp   = new URLSearchParams({
+    mosque: prof.mosqueId     || '',
+    n:      prof.mosqueName   || '',
+    a:      prof.mosqueAddress || '',
+    z:      prof.zone         || 'WLY01',
+    t:      prof.theme        || 'rose',
+    s:      '1',
+  });
+  const adminUrl = `${window.location.origin}/ui_kits/mobile-admin/index.html?${qp}`;
+  const qrSrc    = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&color=010103&bgcolor=ffffff&data=${encodeURIComponent(adminUrl)}`;
+
+  const el = document.createElement('div');
+  el.id = 'rl-pair-overlay';
+  el.style.cssText = [
+    'position:fixed', 'inset:0', 'z-index:2147483647',
+    'background:rgba(0,0,0,0.92)', 'display:flex',
+    'align-items:center', 'justify-content:center',
+    'font-family:"Outfit",system-ui,sans-serif', 'color:white',
+    'cursor:pointer',
+  ].join(';');
+
+  el.innerHTML = `
+    <div onclick="event.stopPropagation()" style="
+      background:rgba(12,6,22,0.99);border-radius:40px;
+      border:1px solid rgba(255,255,255,0.12);
+      padding:52px 64px;display:flex;flex-direction:column;
+      align-items:center;gap:28px;text-align:center;
+      box-shadow:0 40px 80px rgba(0,0,0,0.9);
+      animation:rl-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;">
+      <div>
+        <p style="margin:0;font-size:13px;font-weight:900;color:#fb7185;letter-spacing:0.4em;text-transform:uppercase">Sambung Telefon Admin</p>
+        <p style="margin:8px 0 0;font-size:30px;font-weight:900;text-transform:uppercase;letter-spacing:-0.025em">Imbas QR Ini</p>
+      </div>
+      <div style="background:white;padding:18px;border-radius:28px;box-shadow:0 20px 50px rgba(0,0,0,0.7)">
+        <img src="${qrSrc}" width="300" height="300" style="display:block;border-radius:12px" />
+      </div>
+      <p style="margin:0;font-size:16px;font-weight:700;color:rgba(255,255,255,0.50);max-width:380px;line-height:1.6">
+        Buka tab <b style="color:white">Setup</b> dalam admin → tap <b style="color:white">Imbas QR Dari TV</b> → halakan ke kod ini
+      </p>
+      <button onclick="document.getElementById('rl-pair-overlay').remove()" style="
+        font:inherit;cursor:pointer;
+        padding:14px 44px;border-radius:22px;
+        background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);
+        color:rgba(255,255,255,0.65);font-size:14px;font-weight:900;
+        letter-spacing:0.2em;text-transform:uppercase">
+        Tutup
+      </button>
+    </div>
+    <style>@keyframes rl-pop{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}</style>
+  `;
+
+  el.addEventListener('click', () => el.remove());
+  document.body.appendChild(el);
+}
 
 // Official JAKIM-aligned Hijri date using Umm al-Qura calendar (same basis as Malaysia's official Islamic calendar)
 const HIJRI_MONTHS = ['Muharram','Safar','Rabiulawal','Rabiulakhir','Jamadilawal','Jamadilakhir','Rejab','Syaaban','Ramadan','Syawal','Zulkaedah','Zulhijah'];
@@ -18,76 +80,7 @@ function computeHijri(date) {
   } catch { return ''; }
 }
 
-function PairingModal({ onClose }) {
-  const prof    = window.RL_STATE?.loadProfile() || {};
-  const qp      = new URLSearchParams({
-    mosque: prof.mosqueId    || '',
-    n:      prof.mosqueName  || '',
-    a:      prof.mosqueAddress || '',
-    z:      prof.zone        || 'WLY01',
-    t:      prof.theme       || 'rose',
-    s:      '1',
-  });
-  const adminUrl = `${window.location.origin}/ui_kits/mobile-admin/index.html?${qp}`;
-  const qrSrc    = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&color=010103&data=${encodeURIComponent(adminUrl)}`;
-
-  return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 99999,
-        background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(20px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: 'rgba(12,6,22,0.98)', borderRadius: 40,
-          border: '1px solid rgba(255,255,255,0.12)',
-          padding: '48px 56px', display: 'flex', flexDirection: 'column',
-          alignItems: 'center', gap: 28,
-          boxShadow: '0 40px 80px rgba(0,0,0,0.8)',
-          animation: 'rl-pop 0.4s cubic-bezier(0.34,1.56,0.64,1)',
-        }}
-      >
-        <div style={{ textAlign: 'center' }}>
-          <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: '#fb7185', letterSpacing: '0.4em', textTransform: 'uppercase' }}>
-            Sambung Telefon
-          </p>
-          <p style={{ margin: '8px 0 0', fontSize: 28, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.025em' }}>
-            Imbas QR Ini
-          </p>
-        </div>
-
-        <div style={{ background: 'white', padding: 16, borderRadius: 24, boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}>
-          <img src={qrSrc} width="280" height="280" alt="Pairing QR" style={{ display: 'block', borderRadius: 10 }} />
-        </div>
-
-        <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.45)', textAlign: 'center', maxWidth: 360, lineHeight: 1.5 }}>
-          Buka kamera telefon → imbas kod di atas → admin terus tersambung ke TV ini
-        </p>
-
-        <button
-          onClick={onClose}
-          style={{
-            font: 'inherit', cursor: 'pointer',
-            padding: '14px 40px', borderRadius: 20,
-            background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
-            color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 900,
-            letterSpacing: '0.2em', textTransform: 'uppercase',
-          }}
-        >
-          Tutup
-        </button>
-      </div>
-      <style>{`@keyframes rl-pop { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }`}</style>
-    </div>
-  );
-}
-
 function TVHeader({ time, mosqueName, mosqueAddress, logoUrl }) {
-  const [showPairing, setShowPairing] = useState(false);
   // Subscribe to shared profile for live updates from the admin app.
   // Always call the hook (rules-of-hooks); fall back to defaults if state.js missing.
   const useProf = window.RL_STATE?.useProfile;
@@ -192,7 +185,7 @@ function TVHeader({ time, mosqueName, mosqueAddress, logoUrl }) {
         <img
           src={logo || _logoMark}
           width="64" height="64" alt="Masjid Logo"
-          onClick={() => setShowPairing(true)}
+          onClick={showPairingOverlay}
           onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
           onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
           style={{
@@ -203,7 +196,6 @@ function TVHeader({ time, mosqueName, mosqueAddress, logoUrl }) {
             transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         />
-        {showPairing && <PairingModal onClose={() => setShowPairing(false)} />}
         <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
           <h1 style={{
             margin: 0, fontWeight: 900, letterSpacing: '-0.025em', lineHeight: 1, textTransform: 'uppercase',
