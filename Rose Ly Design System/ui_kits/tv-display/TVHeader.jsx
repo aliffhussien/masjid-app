@@ -2,7 +2,7 @@
 // TVHeader.jsx — top bar: logo + identity, hadith rotation, weather widget, Hijri/Gregorian date, clock.
 import _logoMark from '../../assets/logo-mark.png';
 
-const { useState, useEffect } = React;
+const { useState, useEffect, useCallback } = React;
 
 // Official JAKIM-aligned Hijri date using Umm al-Qura calendar (same basis as Malaysia's official Islamic calendar)
 const HIJRI_MONTHS = ['Muharram','Safar','Rabiulawal','Rabiulakhir','Jamadilawal','Jamadilakhir','Rejab','Syaaban','Ramadan','Syawal','Zulkaedah','Zulhijah'];
@@ -18,7 +18,76 @@ function computeHijri(date) {
   } catch { return ''; }
 }
 
+function PairingModal({ onClose }) {
+  const prof    = window.RL_STATE?.loadProfile() || {};
+  const qp      = new URLSearchParams({
+    mosque: prof.mosqueId    || '',
+    n:      prof.mosqueName  || '',
+    a:      prof.mosqueAddress || '',
+    z:      prof.zone        || 'WLY01',
+    t:      prof.theme       || 'rose',
+    s:      '1',
+  });
+  const adminUrl = `${window.location.origin}/ui_kits/mobile-admin/index.html?${qp}`;
+  const qrSrc    = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&color=010103&data=${encodeURIComponent(adminUrl)}`;
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 99999,
+        background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(20px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'rgba(12,6,22,0.98)', borderRadius: 40,
+          border: '1px solid rgba(255,255,255,0.12)',
+          padding: '48px 56px', display: 'flex', flexDirection: 'column',
+          alignItems: 'center', gap: 28,
+          boxShadow: '0 40px 80px rgba(0,0,0,0.8)',
+          animation: 'rl-pop 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+        }}
+      >
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: '#fb7185', letterSpacing: '0.4em', textTransform: 'uppercase' }}>
+            Sambung Telefon
+          </p>
+          <p style={{ margin: '8px 0 0', fontSize: 28, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.025em' }}>
+            Imbas QR Ini
+          </p>
+        </div>
+
+        <div style={{ background: 'white', padding: 16, borderRadius: 24, boxShadow: '0 20px 40px rgba(0,0,0,0.6)' }}>
+          <img src={qrSrc} width="280" height="280" alt="Pairing QR" style={{ display: 'block', borderRadius: 10 }} />
+        </div>
+
+        <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.45)', textAlign: 'center', maxWidth: 360, lineHeight: 1.5 }}>
+          Buka kamera telefon → imbas kod di atas → admin terus tersambung ke TV ini
+        </p>
+
+        <button
+          onClick={onClose}
+          style={{
+            font: 'inherit', cursor: 'pointer',
+            padding: '14px 40px', borderRadius: 20,
+            background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
+            color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 900,
+            letterSpacing: '0.2em', textTransform: 'uppercase',
+          }}
+        >
+          Tutup
+        </button>
+      </div>
+      <style>{`@keyframes rl-pop { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }`}</style>
+    </div>
+  );
+}
+
 function TVHeader({ time, mosqueName, mosqueAddress, logoUrl }) {
+  const [showPairing, setShowPairing] = useState(false);
   // Subscribe to shared profile for live updates from the admin app.
   // Always call the hook (rules-of-hooks); fall back to defaults if state.js missing.
   const useProf = window.RL_STATE?.useProfile;
@@ -123,7 +192,7 @@ function TVHeader({ time, mosqueName, mosqueAddress, logoUrl }) {
         <img
           src={logo || _logoMark}
           width="64" height="64" alt="Masjid Logo"
-          onClick={() => window.location.href = '../../index.html'}
+          onClick={() => setShowPairing(true)}
           onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
           onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
           style={{
@@ -134,6 +203,7 @@ function TVHeader({ time, mosqueName, mosqueAddress, logoUrl }) {
             transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         />
+        {showPairing && <PairingModal onClose={() => setShowPairing(false)} />}
         <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
           <h1 style={{
             margin: 0, fontWeight: 900, letterSpacing: '-0.025em', lineHeight: 1, textTransform: 'uppercase',
