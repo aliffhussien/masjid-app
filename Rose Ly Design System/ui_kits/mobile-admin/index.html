@@ -2,8 +2,16 @@
 <html lang="ms">
 <head>
   <meta charset="utf-8">
-  <title>Rose Ly · Mobile Admin</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rose Ly · Admin Masjid</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- PWA manifest — gives the browser an icon, standalone mode, and theme colour -->
+  <link rel="manifest" href="manifest-admin.webmanifest">
+  <!-- iOS PWA support (Safari doesn't read the manifest for these) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Admin Masjid">
+  <link rel="apple-touch-icon" href="../../assets/logo-mark.png">
+  <meta name="theme-color" content="#e11d48">
   <link rel="icon" type="image/png" href="../../assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -82,12 +90,32 @@
     }
     .app-area > div { height: 100%; }
 
-    /* Scale frame to fit viewport if it's smaller */
-    @media (max-height: 940px) {
+    /* Scale frame to fit viewport if it's smaller (desktop preview only) */
+    @media (max-height: 940px) and (min-width: 481px) {
       .frame { transform: scale(calc((100vh - 32px) / 900)); transform-origin: center center; }
     }
-    @media (max-width: 460px) {
-      .frame { transform: scale(calc((100vw - 32px) / 412)); transform-origin: center center; }
+
+    /* ── REAL MOBILE / PWA STANDALONE ─────────────────────────────────────
+       Remove the decorative phone frame entirely so the app fills the screen
+       natively — just like any other installed Android or iOS app. */
+    @media (max-width: 480px), (display-mode: standalone) {
+      .frame-wrap {
+        padding: 0;
+        background: #020617;
+        align-items: stretch;
+        justify-content: stretch;
+      }
+      .frame {
+        width: 100%;
+        height: 100%;
+        min-height: 100dvh;
+        border-radius: 0;
+        box-shadow: none;
+        transform: none !important;
+      }
+      .frame::before { display: none; }   /* hide notch decoration */
+      .status-bar    { display: none; }   /* hide fake status bar */
+      .app-area      { padding-top: 0; }  /* reclaim the fake status bar space */
     }
 
     /* Microinteractions — press feedback on every button + better tap targets */

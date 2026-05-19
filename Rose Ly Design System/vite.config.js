@@ -16,6 +16,15 @@ export default defineConfig({
         tv: resolve(__dirname, 'ui_kits/tv-display/index.html'),
         jumaat: resolve(__dirname, 'ui_kits/tv-display/jumaat.html'),
       },
+      output: {
+        // Keep PWA icon assets at predictable (non-hashed) paths so manifests can reference them
+        assetFileNames: (assetInfo) => {
+          if (['logo-mark.png', 'favicon.png'].includes(assetInfo.name || '')) {
+            return 'assets/[name][extname]';
+          }
+          return 'assets/[name]-[hash][extname]';
+        },
+      },
     },
   },
   server: {
