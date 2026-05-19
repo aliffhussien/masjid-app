@@ -1,5 +1,9 @@
 {
   "buildCommand": "npm install --prefix \"Rose Ly Design System\" && npm run build --prefix \"Rose Ly Design System\"",
   "outputDirectory": "Rose Ly Design System/dist",
-  "installCommand": "echo skip"
+  "installCommand": "echo skip",
+  "env": {
+    "VITE_SUPABASE_URL": "https://htougjzzupyshgfluqbq.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0b3Vnanp6dXB5c2hnZmx1cWJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0Mjc3NDAsImV4cCI6MjA5NDAwMzc0MH0.5Wy7g2BTD3cIETKfYmiCTFsNvnd3F0gGkx8N4JgE8OQ"
+  }
 }
